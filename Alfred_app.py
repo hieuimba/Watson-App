@@ -22,7 +22,7 @@ password = st.secrets['db_password']
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
-@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id})
+@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=30)
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
@@ -124,7 +124,7 @@ if option == 'Positions':
         spy = ['SPY']
         # spy.append('SPY')
         selection_df['list'] = list(open_positions.index.values) + list(closed_positions.index.values) + spy
-        tradingview = open('\tradingview.html', 'r', encoding = 'utf-8')
+        tradingview = open('Alfred-4/tradingview.html', 'r', encoding = 'utf-8')
         source_code = tradingview.read()
 
         selection = st.selectbox('', (selection_df))
