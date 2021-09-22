@@ -25,7 +25,7 @@ password = st.secrets['db_password']
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
 
-@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl = 10)
+# @st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl = 10)
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
