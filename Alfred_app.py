@@ -1,7 +1,6 @@
 import mysql.connector
 from sqlalchemy import create_engine
 import sqlalchemy
-import sqlalchemy.dialects
 import streamlit as st
 
 import pandas as pd
@@ -29,13 +28,9 @@ password = st.secrets['db_password']
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
 
-#@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id})
-#def get_table(connection, table, index = None):
-#    return pd.read_sql_table(table, con = connection, index_col = index)
-
 @st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id})
-def run_query(connection, query):
-    return pd.read_sql_query(query, con = connection)
+def run_query(connection, query, index_col = None):
+    return pd.read_sql_query(query, connection, index_col)
 
 positions = db_connect('positions')
 prices = db_connect('prices')
@@ -49,6 +44,6 @@ st.caption(f'Updated: {updated.iat[0,0]}')
 st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html=True)\
 
 
-open_positions = run_query(positions, "SELECT * FROM open_positions")
+open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
 st.write(open_positions)
 
