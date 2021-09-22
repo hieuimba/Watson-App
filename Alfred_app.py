@@ -45,5 +45,5 @@ st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsa
 
 
 open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
-st.write(open_positions)
+st.table(open_positions)
 
