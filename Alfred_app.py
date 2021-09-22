@@ -54,8 +54,79 @@ if option == 'Positions':
     total_open_risk = '{0:.2f}'.format(open_positions['open risk'].sum() / risk) + ' R'
 
     # Format open positions table
-    open_positions = open_positions.drop(columns = ['atr', 'atr risk'])
     open_positions['rlzd p&l'] /= risk
     open_positions['unrlzd p&l'] /= risk
     open_positions['open risk'] /= risk
     st.table(open_positions)
+    
+    # Format closed positions table
+    ls = []
+    for i in range(0, len(closed_positions), 1):
+        if closed_positions.iloc[i]['action'] == 'BUY' and closed_positions.iloc[i]['rlzd p&l'] != 0:
+            ls.append('short')
+        elif closed_positions.iloc[i]['action'] == 'SELL' and closed_positions.iloc[i]['rlzd p&l'] != 0:
+            ls.append('long')
+        else:
+            ls.append(np.nan)
+    closed_positions['l/s'] = ls
+    closed_positions = closed_positions[closed_positions['status'] == 'Filled']  # filter for filled trades only
+    closed_positions = closed_positions[(closed_positions['l/s'] == 'long') | (closed_positions['l/s'] == 'short')]
+    closed_positions = closed_positions.drop(columns = ['action', 'type', 'status', 'time', 'price', 'filled qty', 'comm.'])
+    closed_positions['entry'], closed_positions['stop'], closed_positions['target'], closed_positions['unrlzd p&l'] = 0, 0, 0, 0  # not avaialbe yet
+    closed_positions.rename(columns = {'filled at': 'exit'}, inplace = True)
+    closed_positions = closed_positions[['l/s', 'qty', 'entry', 'exit', 'stop', 'target', 'unrlzd p&l', 'rlzd p&l']]
+    closed_positions['rlzd p&l'] /= risk
+    closed_positions['unrlzd p&l'] /= risk
+    
+    # Positions summary
+    '---' 
+    one, two, three, four = st.columns([4, 9, 3, 4]) 
+    with two:
+        st.header(f'Current P&L: {total_pnl}')
+        st.text(f'Unrealized: {unrealized_pnl}')
+        st.text(f'Realized: {realized_pnl}')
+    with three:
+        st.header('Risk:')
+        st.text(f'Total open risk: {total_open_risk}')
+    
+    # Positions table
+    '---' 
+    one, two, three = st.columns([1, 3, 1])
+    with two:
+        open_positions.sort_values(by= 'unrlzd p&l', inplace = True, ascending = False)
+        st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
+                f'{len(open_positions)} trades in progress...')
+        st.table(open_positions.style.format({'qty': '{0:.2f}',
+                                                     'entry': '{0:.2f}',
+                                                     'last': '{0:.2f}',
+                                                     'stop': '{0:.2f}',
+                                                     'target': '{0:.2f}',
+                                                     'unrlzd p&l': '{0:.2f} R',
+                                                     'rlzd p&l': '{0:.2f} R',
+                                                     'open risk': '{0:.2f} R'},
+                                                      na_rep = 'N/A'))
+        if len(closed_positions) > 0:
+            closed_positions.sort_values(by = 'rlzd p&l', inplace = True, ascending = False)
+            st.text(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
+                    f'{len(closed_positions)} closed trades')
+            st.table(closed_positions.style.format({'qty': '{0:.2f}',
+                                                           'entry': '{0:.2f}',
+                                                           'exit': '{0:.2f}',
+                                                           'stop': '{0:.2f}',
+                                                           'target': '{0:.2f}',
+                                                           'unrlzd p&l': '{0:.2f} R',
+                                                           'rlzd p&l': '{0:.2f} R'},
+                                                            na_rep = 'N/A'))
+    # TradingView Chart
+    one, two, three = st.columns([1, 3, 1])
+    with two:
+        selection_df = pd.DataFrame()
+        spy = ['SPY']
+        # spy.append('SPY')
+        selection_df['list'] = list(open_positions.index.values) + list(closed_positions.index.values) + spy
+        tradingview = open('\tradingview.html', 'r', encoding = 'utf-8')
+        source_code = tradingview.read()
+
+        selection = st.selectbox('', (selection_df))
+        source_code = source_code.replace('AAPL', selection)
+        components.html(source_code, height = 800)
