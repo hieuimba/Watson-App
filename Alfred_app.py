@@ -58,3 +58,4 @@ if option == 'Positions':
     open_positions['rlzd p&l'] /= risk
     open_positions['unrlzd p&l'] /= risk
     open_positions['open risk'] /= risk
+    st.table(open_positions)
