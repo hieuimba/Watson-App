@@ -7,7 +7,6 @@ import pandas as pd
 
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
-
 ##----------LAYOUT SETUP----------
 st.set_page_config(layout='wide', page_title = 'Alfred 4', page_icon = '📈')
 # hide_menu_style = '<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>'
@@ -35,8 +34,9 @@ open_orders = run_query(positions, "SELECT * FROM open_orders", 'symbol')
 closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
 closed_positions = closed_orders.copy()
 
-##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 
+
+##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(prices, "SELECT Updated FROM symbol_list LIMIT 1")
 option = st.radio('', options = ['Positions','Position Calc','Orders','Sectors','Scanner','Watchlist'])
@@ -45,4 +45,16 @@ st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", 
 st.caption(f'Updated: {updated.iat[0,0]}')
 st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html=True)
 
+##----------POSITIONS SCREEN------
+if option == 'Positions':
+    # Calcs
+    unrealized_pnl = '{0:.2f}'.format(open_positions['unrlzd p&l'].sum() / risk) + ' R'
+    realized_pnl = '{0:.2f}'.format(closed_orders['rlzd p&l'].sum() / risk) + ' R'
+    total_pnl = '{0:.2f}'.format((open_positions['unrlzd p&l'].sum() + closed_orders['rlzd p&l'].sum()) / risk, 2) + ' R'
+    total_open_risk = '{0:.2f}'.format(open_positions['open risk'].sum() / risk) + ' R'
 
+    # Format open positions table
+    open_positions = open_positions.drop(columns = ['atr', 'atr risk'])
+    open_positions['rlzd p&l'] /= risk
+    open_positions['unrlzd p&l'] /= risk
+    open_positions['open risk'] /= risk
