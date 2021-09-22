@@ -4,7 +4,7 @@ import sqlalchemy
 import sqlalchemy.dialects
 import streamlit as st
 
-
+import pandas as pd
 
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
