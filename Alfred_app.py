@@ -1,7 +1,7 @@
 import mysql.connector
 from sqlalchemy import create_engine
 import sqlalchemy
-
+import sqlalchemy.dialects
 import streamlit as st
 
 
