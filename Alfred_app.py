@@ -40,7 +40,7 @@ closed_positions = closed_orders.copy()
 
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
-updated = run_query(prices, "SELECT Updated FROM symbol_list LIMIT 1")
+updated = run_query(prices, "SELECT Updated FROM Updated")
 option = st.radio('', options = ['Positions','Position Calc','Orders','Sectors','Scanner','Watchlist'])
 
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
