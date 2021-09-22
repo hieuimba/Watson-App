@@ -1,16 +1,10 @@
 import mysql.connector
 from sqlalchemy import create_engine
 import streamlit as st
-import os
 
-user = os.environ.get('DB_USER')
-password = os.environ.get('DB_PASSWORD')
-host = os.environ.get('DB_HOST')
-
-#user = 'alfred'
-#password = 'Alfred:127.0.0.1'
-#host = '3.99.99.227'
-
+host = st.secrets["db_host"]
+user = st.secrets["db_user"]
+password = st.secrets["db_password"]
 database = 'prices'
 
 engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}", echo=False)
