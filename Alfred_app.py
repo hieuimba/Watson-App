@@ -123,11 +123,11 @@ if option == 'Positions':
     with two:
         selection_df = pd.DataFrame()
         spy = ['SPY']
-        # spy.append('SPY')
         selection_df['list'] = list(open_positions.index.values) + list(closed_positions.index.values) + spy
+        selections = list(open_positions.index.values) + list(closed_positions.index.values) + spy
         tradingview = open('tradingview.html', 'r', encoding = 'utf-8')
         source_code = tradingview.read()
 
-        selection = st.selectbox('', (selection_df))
+        selection = st.selectbox('', (selections))
         source_code = source_code.replace('AAPL', selection)
         components.html(source_code, height = 800)
