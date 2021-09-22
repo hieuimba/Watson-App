@@ -1,6 +1,6 @@
 import mysql.connector
 from sqlalchemy import create_engine
-import streamlit
+import streamlit as st
 import os
 
 user = os.environ.get('DB_USER')
