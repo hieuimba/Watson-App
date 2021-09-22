@@ -13,7 +13,7 @@ host = '3.99.99.227'
 
 database = 'prices'
 
-engine = create_engine(f"mysql://{user}:{password}@{host}/{database}", echo=False)
+engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}", echo=False)
 st.write('engine connected')
 example = engine.execute(f"select * from etf_price limit 20")
 st.write(example)
