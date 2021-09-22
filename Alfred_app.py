@@ -45,5 +45,11 @@ st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsa
 
 
 open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
-st.table(open_positions)
+open_orders = run_query(positions, "SELECT * FROM open_orders", 'symbol')
+closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
+closed_positions = closed_orders.copy()
 
+st.table(open_positions)
+st.table(open_orders)
+st.table(closed_positions)
+st.table(closed_orders)
