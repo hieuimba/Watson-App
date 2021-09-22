@@ -11,8 +11,7 @@ import pandas as pd
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
 st.set_page_config(layout='wide', page_title = 'Alfred 4', page_icon = '📈')
-# hide_menu_style = '<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>'
-st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
+#st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 
 risk = st.secrets['risk'] #<--------using static risk
 
