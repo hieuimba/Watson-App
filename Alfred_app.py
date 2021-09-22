@@ -1,7 +1,9 @@
 import mysql.connector
 from sqlalchemy import create_engine
 import sqlalchemy
+
 import streamlit as st
+import streamlit.components.v1 as components
 
 import pandas as pd
 
@@ -22,7 +24,7 @@ password = st.secrets['db_password']
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
-@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=30)
+@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id})
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
