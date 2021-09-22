@@ -57,7 +57,6 @@ if option == 'Positions':
     open_positions['rlzd p&l'] /= risk
     open_positions['unrlzd p&l'] /= risk
     open_positions['open risk'] /= risk
-    st.table(open_positions)
     
     # Format closed positions table
     ls = []
@@ -124,7 +123,7 @@ if option == 'Positions':
         spy = ['SPY']
         # spy.append('SPY')
         selection_df['list'] = list(open_positions.index.values) + list(closed_positions.index.values) + spy
-        tradingview = open('Alfred-4/tradingview.html', 'r', encoding = 'utf-8')
+        tradingview = open('main\tradingview.html', 'r', encoding = 'utf-8')
         source_code = tradingview.read()
 
         selection = st.selectbox('', (selection_df))
