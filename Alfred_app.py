@@ -127,5 +127,5 @@ if option == 'Positions':
         source_code = tradingview.read()
 
         select = st.selectbox('', (selections))
-        source_code = source_code.replace('AAPL', selection)
+        source_code = source_code.replace('AAPL', select)
         components.html(source_code, height = 800)
