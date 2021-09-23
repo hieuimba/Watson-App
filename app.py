@@ -138,6 +138,7 @@ if option == 'Orders':
     st.dataframe(open_orders.style.format({'qty': '{0:.2f}',
                                               'price': '{0:.2f}'},
                                               na_rep = 'N/A'))
+    
     # Closed orders
     st.text(f'{len(closed_orders)} closed orders')
     closed_orders.sort_values(by= 'status', inplace = True, ascending = False)
@@ -148,3 +149,62 @@ if option == 'Orders':
                                                 'filled qty': '{0:.2f}',
                                                 'comm.': '{0:.2f}'},
                                                 na_rep = 'N/A'))
+
+    
+##----------SECTORS SCREEN--------
+sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF', 'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
+if option == 'Sectors':
+    # Select period
+    '---'
+    beta_list = []
+    matrix = pd.DataFrame()
+    std_dev = pd.DataFrame()
+
+    one, two = st.columns([1,5])
+    with one:
+        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y', '2 Y'], help ='1 month = 21 trading days')
+        if options == '1 M':
+            period = 21
+        elif options == '3 M':
+            period = 63
+        elif options == '6 M':
+            period = 126
+        elif options == '1 Y':
+            period = 252
+        elif options == '2 Y':
+            period = 504
+            
+    # Translation table
+    with two:
+        sector_name = ['S&P 500 ETF', 'Energy', 'Industrials', 'Technology', 'Consumer Discretionary',
+                       'Financials', 'Materials', 'Consumer Staples', 'Health Care', 'Utilities',
+                       'Real Estate', 'Communication Services', 'Russell 2000 ETF', 'Invesco QQQ Trust']
+        sector_trans = pd.DataFrame(data = sector_name, columns = ['Name'], index = sector_list)
+        st.table(sector_trans.T)
+    
+    # Correlation table
+    spy = run_query(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+    spy['return%'] = spy['Close'].pct_change(1) * 100
+    spy = spy.tail(period)
+    spy['var'] = spy['return%'].var()
+    for i in range(0, len(sector_list)):
+        sector = etf[etf['Symbol'] == sector_list[i]].copy()
+        sector['return%'] = sector['Close'].pct_change(1) * 100
+        sector = sector.tail(period)
+        matrix[f'{sector_list[i]}'] = sector['return%'].values
+        corr_matrix = matrix.corr()
+
+        sector['bm_return%'] = spy['return%'].to_list()
+        cov_df = sector[['return%', "bm_return%"]].cov()
+        bm_var = spy.iloc[-1]['var']
+        beta = cov_df.iloc[1, 0] / bm_var
+        beta_list.append(beta)
+
+    temp = pd.DataFrame(index = sector_list)
+    temp['Beta'] = beta_list
+    temp = temp.T
+    corr_matrix = corr_matrix.append(temp)
+    u = corr_matrix.index.get_level_values(0)
+    corr_matrix = corr_matrix.style.background_gradient(cmap = 'Oranges', axis = None, low = -0.5, subset = pd.IndexSlice[u[:-1], :])
+    corr_matrix = corr_matrix.background_gradient(cmap = 'Greens', axis = None, subset = pd.IndexSlice[u[-1], :])
+    st.table(corr_matrix.format(precision = 3))
