@@ -146,6 +146,5 @@ if option == 'Orders':
                                                 'price': '{0:.2f}',
                                                 'filled at':  '{0:.2f}',
                                                 'filled qty': '{0:.2f}',
-                                                'comm.': '{0:.2f}',
-                                                'rlzd p&l': '{0:.2f}'},
+                                                'comm.': '{0:.2f}'},
                                                 na_rep = 'N/A'))
