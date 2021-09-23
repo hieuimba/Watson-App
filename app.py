@@ -129,3 +129,21 @@ if option == 'Positions':
         select = st.selectbox('', (selections))
         source_code = source_code.replace('AAPL', select)
         components.html(source_code, height = 800)
+        
+##----------ORDERS SCREEN---------
+if option == 'Orders':
+    # Open orders
+    '---'
+    st.text(f'{len(open_orders)} open orders')
+    st.table(open_orders.style.format({'qty': '{0:.2f}',
+                                              'price': '{0:.2f}'},
+                                              na_rep = 'N/A'))
+    # Closed orders
+    st.text(f'{len(closed_orders)} closed orders')
+    st.table(closed_orders.style.format({'qty': '{0:.2f}',
+                                                'price': '{0:.2f}',
+                                                'filled at':  '{0:.2f}',
+                                                'filled qty': '{0:.2f}',
+                                                'comm.': '{0:.2f}',
+                                                'rlzd p&l': '{0:.2f}'},
+                                                na_rep = 'N/A'))
