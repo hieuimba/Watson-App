@@ -141,7 +141,7 @@ if option == 'Orders':
     # Closed orders
     st.text(f'{len(closed_orders)} closed orders')
     closed_orders.sort_values(by= 'status', inplace = True, ascending = False)
-    # closed_orders.drop(columns = ['rlzd p&l'], inplace = True)
+    closed_orders.drop(columns = ['rlzd p&l'], inplace = True)
     st.dataframe(closed_orders.style.format({'qty': '{0:.2f}',
                                                 'price': '{0:.2f}',
                                                 'filled at':  '{0:.2f}',
