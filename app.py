@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib
 
+from ta import volatility
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
