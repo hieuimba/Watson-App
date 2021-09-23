@@ -188,7 +188,7 @@ if option == 'Sectors':
     spy = spy.tail(period)
     spy['var'] = spy['return%'].var()
     for i in range(0, len(sector_list)):
-        sector = etf[etf['Symbol'] == sector_list[i]].copy()
+        sector = run_query(prices, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
         sector['return%'] = sector['Close'].pct_change(1) * 100
         sector = sector.tail(period)
         matrix[f'{sector_list[i]}'] = sector['return%'].values
