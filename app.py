@@ -140,6 +140,7 @@ if option == 'Orders':
                                               na_rep = 'N/A'))
     # Closed orders
     st.text(f'{len(closed_orders)} closed orders')
+    closed_orders.sort_values(by= 'status', inplace = True, ascending = False)
     st.dataframe(closed_orders.style.format({'qty': '{0:.2f}',
                                                 'price': '{0:.2f}',
                                                 'filled at':  '{0:.2f}',
