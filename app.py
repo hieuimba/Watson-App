@@ -135,12 +135,12 @@ if option == 'Orders':
     # Open orders
     '---'
     st.text(f'{len(open_orders)} open orders')
-    st.table(open_orders.style.format({'qty': '{0:.2f}',
+    st.dataframe(open_orders.style.format({'qty': '{0:.2f}',
                                               'price': '{0:.2f}'},
                                               na_rep = 'N/A'))
     # Closed orders
     st.text(f'{len(closed_orders)} closed orders')
-    st.table(closed_orders.style.format({'qty': '{0:.2f}',
+    st.dataframe(closed_orders.style.format({'qty': '{0:.2f}',
                                                 'price': '{0:.2f}',
                                                 'filled at':  '{0:.2f}',
                                                 'filled qty': '{0:.2f}',
