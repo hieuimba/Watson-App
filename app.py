@@ -23,11 +23,14 @@ host = st.secrets['db_host']
 user = st.secrets['db_user']
 password = st.secrets['db_password']
 
-@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl = 36000)
+@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
 
 @st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id})
+def run_query_cached(connection, query, index_col = None):
+    return pd.read_sql_query(query, connection, index_col)
+
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
@@ -185,12 +188,12 @@ if option == 'Sectors':
         st.table(sector_trans.T)
     
     # Correlation table
-    spy = run_query(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+    spy = run_query_cached(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
     spy['return%'] = spy['Close'].pct_change(1) * 100
     spy = spy.tail(period)
     spy['var'] = spy['return%'].var()
     for i in range(0, len(sector_list)):
-        sector = run_query(prices, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
+        sector = run_query_cached(prices, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
         sector['return%'] = sector['Close'].pct_change(1) * 100
         sector = sector.tail(period)
         matrix[f'{sector_list[i]}'] = sector['return%'].values
@@ -215,7 +218,7 @@ if option == 'Sectors':
 ##----------CALC SCREEN-----------
 if option == 'Position Calc':
     '---'
-    symbol_list = run_query(prices, "SELECT symbol FROM symbol_list")
+    symbol_list = run_query_cached(prices, "SELECT symbol FROM symbol_list")
     symbol_list = symbol_list['symbol'].to_list()
     
     beta_list = []
@@ -257,17 +260,17 @@ if option == 'Position Calc':
     with two:
         symbol = st.multiselect('Select symbols:', options = symbol_list, default = ['SPY'] + open_positions.index.values.tolist())
 
-        spy = run_query(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+        spy = run_query_cached(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
         spy['return%'] = spy['Close'].pct_change(1) * 100
         spy = spy.tail(period)
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
             if symbol[i] in sector_list:
-                bars = run_query(prices, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
+                bars = run_query_cached(prices, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
             else:
-                bars = run_query(prices, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
+                bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
             bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
                                                       window = 21).average_true_range()
