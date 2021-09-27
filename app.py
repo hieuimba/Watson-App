@@ -136,8 +136,9 @@ if option == 'Positions':
         
 ##----------ORDERS SCREEN---------
 if option == 'Orders':
-    # Get order data
+    # Get data
     open_orders = run_query(positions, "SELECT * FROM open_orders", 'symbol')
+    closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
     
     # Open orders
     '---'
