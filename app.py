@@ -31,6 +31,7 @@ def db_connect(db):
 def run_query_cached(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
+@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl = 30)
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
