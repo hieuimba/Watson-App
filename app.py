@@ -38,7 +38,6 @@ positions = db_connect('positions')
 prices = db_connect('prices')
 
 open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
-open_orders = run_query(positions, "SELECT * FROM open_orders", 'symbol')
 closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
 closed_positions = closed_orders.copy()
 
@@ -137,6 +136,9 @@ if option == 'Positions':
         
 ##----------ORDERS SCREEN---------
 if option == 'Orders':
+    # Get order data
+    open_orders = run_query(positions, "SELECT * FROM open_orders", 'symbol')
+    
     # Open orders
     '---'
     st.text(f'{len(open_orders)} open orders')
