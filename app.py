@@ -219,6 +219,9 @@ if option == 'Sectors':
     
 ##----------CALC SCREEN-----------
 if option == 'Position Calc':
+    # Get data
+    open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
+    
     '---'
     symbol_list = run_query_cached(prices, "SELECT symbol FROM symbol_list")
     symbol_list = symbol_list['symbol'].to_list()
