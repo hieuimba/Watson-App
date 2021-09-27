@@ -23,7 +23,7 @@ host = st.secrets['db_host']
 user = st.secrets['db_user']
 password = st.secrets['db_password']
 
-@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
+# @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def db_connect(db):
     return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
 
