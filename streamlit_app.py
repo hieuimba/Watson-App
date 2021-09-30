@@ -23,5 +23,5 @@ risk = st.secrets['risk']  # <--------using static risk
 host = st.secrets['db_host']
 user = st.secrets['db_user']
 password = st.secrets['db_password']
-
-st.write(host,user,password)
+db = "prices"
+create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
