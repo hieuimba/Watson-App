@@ -8,6 +8,6 @@
 [theme]
 primaryColor = "#5c3b66"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#e1d3e6"
+secondaryBackgroundColor = "f9f6fa"
 textColor = "#262730"
 font = "sans serif"
