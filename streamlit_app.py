@@ -16,3 +16,12 @@ st.write('hello')
 genre = st.radio(
 "What's your favorite movie genre",
 ('Comedy', 'Drama', 'Documentary'))
+
+risk = st.secrets['risk']  # <--------using static risk
+
+##----------DATABASE SETUP--------
+host = st.secrets['db_host']
+user = st.secrets['db_user']
+password = st.secrets['db_password']
+
+st.write(host,user,password)
