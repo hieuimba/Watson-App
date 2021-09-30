@@ -13,7 +13,8 @@ from ta import volatility
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
-st.set_page_config(layout = 'wide', page_title = 'Alfred 4', page_icon = '🎩')
+icon = open(12608907.jpg)
+st.set_page_config(layout = 'wide', page_title = 'Alfred 4', page_icon = icon)
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
 
