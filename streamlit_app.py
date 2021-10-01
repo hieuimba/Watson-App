@@ -51,7 +51,7 @@ prices = db_connect('prices')
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
 
-one, two, three, four, five = st.columns([3,0.5,1.25,1.25,3])
+one, two, three, four, five = st.columns([3,0.3,1.45,1.25,3])
 with two:
     st.image(icon)
 with three:
