@@ -51,11 +51,11 @@ prices = db_connect('prices')
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
 
-one, two, three, four, five = st.columns([3,0.25,1,1.75,3])
+one, two, three, four, five = st.columns([3,0.5,1,1.5,3])
 with two:
     st.image(icon)
 with three:
-    #st.subheader('Watson 3')
+    #st.text('Watson 3')
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     
