@@ -55,9 +55,9 @@ one, two, three, four, five = st.columns([3,1,1,1,3])
 with two:
     st.image(icon)
 with three:
-    st.subheader('Watson 3')
-with four:
+    #st.subheader('Watson 3')
     st.caption(f'Updated: {updated.iat[0, 0]}')
+    
     
 one, two, three = st.columns([1,1,1])
 with two:
