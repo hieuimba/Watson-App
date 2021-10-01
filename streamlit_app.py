@@ -50,13 +50,19 @@ prices = db_connect('prices')
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
+
 one, two, three = st.columns([1,1,1])
 with two:
-    st.image(icon)
-    st.subheader('Watson 3')
     option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sectors', 'Scanner', 'Watchlist'])
+    
+one, two, three, four, five = st.columns([1,1,1,1,1])
+with two:
+    st.image(icon)
+with three:
+    st.subheader('Watson 3')
+with four:
     st.caption(f'Updated: {updated.iat[0, 0]}')
-
+    
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
 
