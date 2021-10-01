@@ -15,7 +15,7 @@ from ta import volatility
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
-icon = Image.open('icon.ico')
+icon = Image.open('icon(1).png')
 st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = icon)
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
