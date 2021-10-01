@@ -53,6 +53,7 @@ updated = run_query(positions, "SELECT Updated FROM updated")
 one, two = st.columns([1,24])
 with one:
     st.image(icon)
+    st.text('Select View:')
 with two:
     st.subheader('Watson 3')
     option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sectors', 'Scanner', 'Watchlist'])
