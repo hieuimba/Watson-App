@@ -34,12 +34,12 @@ def db_connect(db):
 
 
 @st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
-def run_query_cached(db, query, index_col = None):
+def run_query_cached(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
     connection.close()
 
 
-def run_query(db, query, index_col = None):
+def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
     connection.close()
 
