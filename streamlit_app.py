@@ -16,7 +16,7 @@ from ta import volatility
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
 icon = Image.open('favicon.ico')
-st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = icon)
+st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
 
@@ -54,7 +54,7 @@ option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sector
 
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 st.caption(f'Updated: {updated.iat[0, 0]}')
-st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
+st.markdown(f"<h1 style='text-align: center; color: black;'>{icon}</h1>", unsafe_allow_html = True)
 
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
