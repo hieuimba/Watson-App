@@ -55,8 +55,8 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text('IB Status: Connected')
-    st.text(f'Updated: {updated.iat[0, 0]}')
+    st.text('IB Engine: Connected')
+    st.subscript(f'Updated: {updated.iat[0, 0]}')
     
     
 one, two, three = st.columns([1,3,1])
