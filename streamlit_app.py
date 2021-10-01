@@ -50,7 +50,7 @@ prices = db_connect('prices')
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
-one, two, three = st.columns([0.5,2,20])
+one, two, three = st.columns([1,3,30])
 with one:
     st.image(icon)
 with two:
