@@ -51,7 +51,7 @@ prices = db_connect('prices')
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
-one, two, three, four, five = st.columns([2,0.3,1.45,1.25,4])
+one, two, three, four, five = st.columns([1,0.3,1.45,1.25,1])
 with two:
     st.image(icon)
 with three:
@@ -59,7 +59,7 @@ with three:
     st.text(f'Updated: {updated.iat[0, 0]}')
     
     
-one, two, three = st.columns([2,3,4])
+one, two, three = st.columns([1,3,1])
 with two:
     option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sectors', 'Scanner', 'Watchlist'])
     
