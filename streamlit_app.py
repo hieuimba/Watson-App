@@ -28,28 +28,25 @@ user = st.secrets['db_user']
 password = st.secrets['db_password']
 
 
-#@st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id})
-#def db_connect(db):
-#    return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
+@st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id})
+def db_connect(db):
+    return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
 
 
 @st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
 def run_query_cached(db, query, index_col = None):
-    connection = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
     return pd.read_sql_query(query, connection, index_col)
     connection.close()
 
 
 def run_query(db, query, index_col = None):
-    connection = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
     return pd.read_sql_query(query, connection, index_col)
     connection.close()
 
 
-#positions = db_connect('positions')
-#prices = db_connect('prices')
-positions = 'positions'
-prices = 'prices'
+positions = db_connect('positions')
+prices = db_connect('prices')
+
 
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
