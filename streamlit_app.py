@@ -200,8 +200,6 @@ if option == 'Sectors':
             period = 126
         elif options == '1 Y':
             period = 252
-        elif options == '2 Y':
-            period = 504
 
     # Translation table
     with two:
