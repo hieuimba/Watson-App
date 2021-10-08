@@ -190,7 +190,7 @@ if option == 'Sectors':
 
     one, two = st.columns([1, 5])
     with one:
-        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y', '2 Y'],
+        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y'],
                            help = '1 month = 21 trading days')
         if options == '1 M':
             period = 21
