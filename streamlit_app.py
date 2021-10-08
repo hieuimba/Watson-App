@@ -47,7 +47,7 @@ def run_query(connection, query, index_col = None):
 positions = db_connect('positions')
 prices = db_connect('prices')
 
-bars = run_query_cached(prices, f"SELECT * FROM etf_price WHERE symbol = 'AAPL'")
+bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = 'AAPL'")
 st.table(bars)
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
