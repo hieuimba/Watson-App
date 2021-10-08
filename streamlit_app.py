@@ -47,8 +47,6 @@ def run_query(connection, query, index_col = None):
 positions = db_connect('positions')
 prices = db_connect('prices')
 
-bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = 'AAPL'")
-st.table(bars)
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
@@ -305,6 +303,7 @@ if option == 'Position Calc':
             bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
                                                       window = 21).average_true_range()
             bars['return%'] = bars['Close'].pct_change(1) * 100
+            st.dataframe(bars)
             if i == len(symbol) - 1:
                 bars['std dev'] = bars['return%'].rolling(21).std()
                 bars['ATR'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
