@@ -300,7 +300,6 @@ if option == 'Position Calc':
             else:
                 bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
-            st.dataframe(bars)
             bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
                                                       window = 21).average_true_range()
             bars['return%'] = bars['Close'].pct_change(1) * 100
