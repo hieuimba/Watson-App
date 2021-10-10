@@ -1,3 +1,4 @@
+import mysql.connector
 from sqlalchemy import create_engine
 import sqlalchemy
 
