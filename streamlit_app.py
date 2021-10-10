@@ -9,13 +9,13 @@ import pandas as pd
 import numpy as np
 import matplotlib
 
-#from PIL import Image
+from PIL import Image
 
 from ta import volatility
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
-#icon = Image.open('favicon.ico')
+icon = Image.open('favicon.ico')
 st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
