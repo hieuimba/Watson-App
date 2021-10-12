@@ -54,7 +54,7 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text("[Source code](https://github.com/hieuimba/Watson-App)")
+    st.text("[Source code]:  https://github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     
@@ -338,3 +338,115 @@ if option == 'Position Calc':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
+
+        add_to_watchlist = st.button('Add to Watchlist')
+        if add_to_watchlist:
+            add_cmd = f"INSERT INTO watchlist VALUES ('{symbol[i]}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{datetime.today().strftime('%Y-%m-%d')}', 'na')"
+            run_command(positions, add_cmd)
+            st.success(f"Added '{symbol[i]}' to watchlist")
+
+##----------WATCHLIST SCREEN------
+if option == 'Watchlist':
+    '---'
+    one,two = st.columns([1,2])
+    with one:
+        watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
+        pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = 'setup')
+        pullback.sort_values(by = 'l/s', inplace = True, ascending = True)
+        st.table(pullback.style.format({'qty': '{0:.2f}',
+                                                    'entry': '{0:.2f}',
+                                                    'stop': '{0:.2f}',
+                                                    'target': '{0:.2f}'},
+                                                   na_rep='N/A'))
+
+        user_input = st.text_input("Add, Modify, Delete")
+        st.caption('Clear input when done')
+
+        if user_input == '/help':
+            st.info("/add - Add new record to list \n" 
+                    "\n" "/mod - Modify a record \n" 
+                    "\n" "/del - Delete a record \n"
+                    "\n" "/help - Get help")
+
+        elif user_input[0:4] == '/add':
+            variable = user_input[5:len(user_input)].split(' ')
+            if variable[0].upper() not in pullback.index.values.tolist():
+                for i in range(0, len(variable)):
+                    try:
+                        variable[i] = float(variable[i])
+                    except:
+                        pass
+                try:
+                    target = variable[2] + variable[2] - variable[3]
+                    variable.append(target)
+                    variable.append('pullback')
+                    variable.append(datetime.today().strftime('%Y-%m-%d'))
+                    variable.append('na')
+                    add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}')"
+                    run_command(positions, add_cmd)
+                    st.success(f"Added '{variable[0].upper()}'")
+                except Exception as e:
+                    st.error("Invalid command, use: \n"
+                            "\n" "add/ [symbol]-[l/s]-[entry]-[stop]")
+            else:
+                st.error(f"Duplicate symbol, remove '{variable[0].upper()}' before continuing")
+
+        elif user_input[0:4] == '/del':
+            variable = user_input[5:len(user_input)].split(',')
+            if variable[0].upper() in pullback.index.values.tolist():
+                del_cmd = f"DELETE FROM watchlist WHERE symbol = '{variable[0].upper()}'"
+                run_command(positions, del_cmd)
+                st.success(f"Deleted '{variable[0].upper()}'")
+            elif variable[0].upper() not in pullback.index.values.tolist():
+                st.error(f"Cannot find '{variable[0].upper()}'")
+            else:
+                st.error("Invalid command, use: \n"
+                         "\n" "del/ [symbol]")
+
+        elif user_input[0:4] == '/mod':
+            # variable = user_input[5:len(user_input)].split(' ')
+            # if variable[0].upper() in pullback.index.values.tolist():
+            #     if variable [1] in pullback.columns:
+            #         for i in range(0, len(variable)):
+            #             try:
+            #                 variable[i] = float(variable[i])
+            #             except:
+            #                 pass
+            #         if type(variable[2]) == float:
+            #             mod_cmd = f"UPDATE watchlist SET {variable[1]}={variable[2]} WHERE symbol = '{variable[0].upper()}'"
+            #             run_command(positions, mod_cmd)
+            #             st.success(f"Modified '{variable[0].upper()}'")
+            #         elif type(variable[2]) == str:
+            #             mod_cmd = f"UPDATE watchlist SET {variable[1]}='{variable[2]}' WHERE symbol = '{variable[0].upper()}'"
+            #             run_command(positions, mod_cmd)
+            #             st.success(f"Modified '{variable[0].upper()}'")
+            #         else:
+            #             st.error("Invalid command, use: \n"
+            #                      "\n" "mod/ [symbol]-[property]-[new value]")
+            #     else:
+            #         st.error("Invalid command, use: \n"
+            #                  "\n" "mod/ [symbol]-[property]-[new value]")
+            # elif variable[0].upper() not in pullback.index.values.tolist():
+            #     st.error(f"Cannot find '{variable[0].upper()}'")
+            # else:
+            #     st.error("Invalid command, use: \n"
+            #              "\n" "del/ [symbol]")
+            st.warning("Under construction, try /del then /add")
+
+        elif user_input == '':
+            st.warning("Type a new command or type /help")
+        else:
+            st.error("Invalid command, try again or type /help")
+
+    with two:
+        selections = pullback.index.values.tolist()
+        if len(selections) >0:
+            selections = str(selections)[1:-1]
+
+            tradingview = open('html/tradingview_watchlist.html', 'r', encoding='utf-8')
+            source_code = tradingview.read()
+            source_code = source_code.replace("'replace'", selections)
+            source_code = source_code.replace("SPY", pullback.index.values.tolist()[0])
+            components.html(source_code, height=800)
+        else:
+            st.text('Watchlist is empty')
