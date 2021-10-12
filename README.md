@@ -7,7 +7,7 @@
  - Interactive TradingView chart
  
 ##### "Add to Watchlist" button from PSC screen
- - Optimized work-flow by sending a watch item from PSC screen
+ - Optimize work-flow by sending a watch item directly from PSC screen
  
 ##### Other:
  - Add icon & theme color
