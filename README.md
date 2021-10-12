@@ -1,5 +1,5 @@
 # Watson 3
- Access here: https://share.streamlit.io/hieuimba/watson-app
+https://share.streamlit.io/hieuimba/watson-app
 ### Ver 3.1
 ##### New: Watchlist Screen
  - View daily stock setups with potential entries, stops and exits
