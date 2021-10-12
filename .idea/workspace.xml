@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a60daa76-e1b1-424d-824a-31fc226249d6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/streamlit_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit_app.py" afterDir="false" />
-    </list>
+    <list default="true" id="a60daa76-e1b1-424d-824a-31fc226249d6" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -32,7 +30,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1634001353282</updated>
-      <workItem from="1634001356119" duration="1362000" />
+      <workItem from="1634001356119" duration="1609000" />
     </task>
     <servers />
   </component>
