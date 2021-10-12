@@ -15,4 +15,3 @@
 
 ### Ver 3.0
 ##### Launch to share.streamlit
- - Access here: https://share.streamlit.io/hieuimba/watson-app
