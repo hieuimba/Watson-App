@@ -447,7 +447,7 @@ if option == 'Watchlist':
 
             tradingview = open('html/tradingview_watchlist.html', 'r', encoding='utf-8')
             source_code = tradingview.read()
-            source_code = source_code.replace('list', selections)
+            source_code = source_code.replace("'list'", selections)
             source_code = source_code.replace('DOW', pullback.index.values.tolist()[0])
             components.html(source_code, height=800)
         else:
