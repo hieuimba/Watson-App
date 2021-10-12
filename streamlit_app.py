@@ -186,6 +186,7 @@ if option == 'Sectors':
     '---'
     beta_list = []
     matrix = pd.DataFrame()
+    corr_matrix = pd.DataFrame()
     std_dev = pd.DataFrame()
 
     one, two = st.columns([1, 5])
@@ -248,6 +249,7 @@ if option == 'Position Calc':
 
     beta_list = []
     matrix = pd.DataFrame()
+    corr_matrix = pd.DataFrame()
     std_dev = pd.DataFrame()
 
     one, two, three = st.columns([2, 3, 1])
@@ -341,9 +343,9 @@ if option == 'Position Calc':
 
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{symbol[i]}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{datetime.today().strftime('%Y-%m-%d')}', 'na')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{datetime.today().strftime('%Y-%m-%d')}', 'na')"
             run_command(positions, add_cmd)
-            st.success(f"Added '{symbol[i]}' to watchlist")
+            st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
 ##----------WATCHLIST SCREEN------
 if option == 'Watchlist':
