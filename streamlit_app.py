@@ -7,11 +7,10 @@ import streamlit.components.v1 as components
 
 import pandas as pd
 import numpy as np
-import matplotlib
 from ta import volatility
 
 from PIL import Image
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
@@ -20,7 +19,7 @@ icon = Image.open('favicon.ico')
 st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
-
+today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
 risk = st.secrets['risk']  # <--------using static risk
 
 ##----------DATABASE SETUP--------
@@ -64,7 +63,8 @@ with two:
     
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
-st.write(datetime.now())
+
+
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
     # Get data
@@ -343,7 +343,7 @@ if option == 'PSC':
 
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{datetime.today().strftime('%Y-%m-%d')}', 'na')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', 'na')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
@@ -382,7 +382,7 @@ if option == 'Watchlist':
                     target = variable[2] + variable[2] - variable[3]
                     variable.append(target)
                     variable.append('pullback')
-                    variable.append(datetime.today().strftime('%Y-%m-%d'))
+                    variable.append(today)
                     variable.append('na')
                     add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}')"
                     run_command(positions, add_cmd)
