@@ -8,10 +8,11 @@ import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import matplotlib
+from ta import volatility
 
 from PIL import Image
+from datetime import datetime
 
-from ta import volatility
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
@@ -36,12 +37,12 @@ def db_connect(db):
 @st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
 def run_query_cached(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
-    connection.close()
-
 
 def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
-    connection.close()
+
+def run_command(connection, query):
+    connection.execute(query)
 
 
 positions = db_connect('positions')
