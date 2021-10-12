@@ -148,7 +148,7 @@ if option == 'Positions':
     one, two, three = st.columns([1, 3, 1])
     with two:
         selections = list(open_positions.index.values) + list(closed_positions.index.values) + ['SPY']
-        tradingview = open('tradingview.html', 'r', encoding = 'utf-8')
+        tradingview = open('html/tradingview.html', 'r', encoding = 'utf-8')
         source_code = tradingview.read()
 
         select = st.selectbox('', (selections))
