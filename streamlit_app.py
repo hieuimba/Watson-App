@@ -44,7 +44,6 @@ def run_query(connection, query, index_col = None):
 def run_command(connection, query):
     connection.execute(query)
 
-
 positions = db_connect('positions')
 prices = db_connect('prices')
 
@@ -55,7 +54,7 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text('IB Engine: Connected')
+    st.text("[Source code](https://github.com/hieuimba/Watson-App)")
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     

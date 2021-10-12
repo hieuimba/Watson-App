@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a60daa76-e1b1-424d-824a-31fc226249d6" name="Changes" comment="" />
+    <list default="true" id="a60daa76-e1b1-424d-824a-31fc226249d6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/streamlit_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit_app.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,11 +31,22 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1634001353282</updated>
-      <workItem from="1634001356119" duration="311000" />
+      <workItem from="1634001356119" duration="652000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
