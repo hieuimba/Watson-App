@@ -60,7 +60,7 @@ with three:
     
 one, two, three = st.columns([1,3,1])
 with two:
-    option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sectors', 'Scanner', 'Watchlist'])
+    option = st.radio('', options = ['Positions', 'Position Calc', 'Orders', 'Sectors', 'Watchlist'])
     
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
