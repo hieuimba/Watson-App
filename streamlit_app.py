@@ -28,9 +28,9 @@ user = st.secrets['db_user']
 password = st.secrets['db_password']
 
 
-@st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id})
+@st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
 def db_connect(db):
-    return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}")
+    return create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{db}", pool_recycle=3600)
 
 
 @st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
