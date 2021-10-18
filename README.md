@@ -1,7 +1,7 @@
 # Watson 3
 https://share.streamlit.io/hieuimba/watson-app
 
-### Ver 3.1 - Oct 12, 2021
+### Ver 3.1 - Oct 11, 2021
 ##### New: Watchlist Screen
  - View daily stock setups with potential entries, stops and exits
  - Ability to Add and Delete Watchlist records using text commands
