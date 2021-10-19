@@ -53,7 +53,7 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text("[Source code]:  https://github.com/hieuimba/Watson-App")
+    st.text("https://github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     
@@ -65,7 +65,7 @@ st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", 
 if option != 'PSC':
     st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
 elif option == 'PSC':
-    st.markdown(f"<h1 style='text-align: center; color: black;'>'Position Size Calculator'</h1>", unsafe_allow_html = True)
+    st.markdown(f"<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>", unsafe_allow_html = True)
 
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
