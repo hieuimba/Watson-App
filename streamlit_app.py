@@ -12,6 +12,20 @@ from ta import volatility
 from PIL import Image
 from datetime import datetime, timedelta
 
+from io import BytesIO
+import requests
+
+BASE_URL= 'https://www.alphavantage.co/query?'
+API_KEY = 'AVY04DPX5LIK3XIG'
+def get_earnings(api_key, horizon, symbol=None):
+    if symbol is not None:
+        url = f'{BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
+        response = requests.get(url)
+    else:
+        url = f"{BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
+        response = requests.get(url)
+
+    return pd.read_csv(BytesIO(response.content))
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
@@ -341,11 +355,12 @@ if option == 'PSC':
         atr = bars.iloc[-1]['ATR']
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
-            f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-
+            f"Distance %: {distance_percent} %,    1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
+        earnings = get earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+        st.text(f"Upcoming Earnings: {earnings},    Days until earnings"
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', 'na')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
