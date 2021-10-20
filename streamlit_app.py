@@ -356,7 +356,7 @@ if option == 'PSC':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,    1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        earnings = get earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
         st.text(f"Upcoming Earnings: {earnings},    Days until earnings"
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
