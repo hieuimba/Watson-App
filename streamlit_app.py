@@ -345,7 +345,7 @@ if option == 'PSC':
 
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', 'na')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', 'na', '{size}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
@@ -382,11 +382,14 @@ if option == 'Watchlist':
                         pass
                 try:
                     target = variable[2] + variable[2] - variable[3]
+                    distance = round(entry - stop, 2)
+                    size = round(risk / abs(distance), 3)
                     variable.append(target)
                     variable.append('pullback')
                     variable.append(today)
                     variable.append('na')
-                    add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}')"
+                    variable.append(size)
+                    add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
                     run_command(positions, add_cmd)
                     st.success(f"Added '{variable[0].upper()}'")
                 except Exception as e:
