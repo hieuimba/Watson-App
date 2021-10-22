@@ -12,7 +12,8 @@ from ta import volatility
 from PIL import Image
 from datetime import datetime, timedelta
 
-
+from io import BytesIO
+import requests
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
 icon = Image.open('favicon.ico')
@@ -22,11 +23,23 @@ st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=Tru
 today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
 risk = st.secrets['risk']  # <--------using static risk
 
+##----------ALPHA VANTAGE---------
+BASE_URL= 'https://www.alphavantage.co/query?'
+API_KEY = 'AVY04DPX5LIK3XIG'
+def get_earnings(api_key, horizon, symbol=None):
+    if symbol is not None:
+        url = f'{BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
+        response = requests.get(url)
+    else:
+        url = f"{BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
+        response = requests.get(url)
+
+    return pd.read_csv(BytesIO(response.content))
+
 ##----------DATABASE SETUP--------
 host = st.secrets['db_host']
 user = st.secrets['db_user']
 password = st.secrets['db_password']
-
 
 @st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
 def db_connect(db):
@@ -342,10 +355,10 @@ if option == 'PSC':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', 'na', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
