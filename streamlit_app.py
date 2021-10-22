@@ -33,9 +33,9 @@ def get_earnings(api_key, horizon, symbol=None):
     else:
         url = f"{BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
         response = requests.get(url)
-
     return pd.read_csv(BytesIO(response.content))
 
+get_earnings(API_KEY,"6month",'NFLX').at[0,'reportDate']
 ##----------DATABASE SETUP--------
 host = st.secrets['db_host']
 user = st.secrets['db_user']
