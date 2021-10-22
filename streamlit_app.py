@@ -353,12 +353,15 @@ if option == 'PSC':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
+        
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'].at[0,'reportDate'])
+        st.write(type(earnings))
         days = np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
-        st.text(f"Earnings date: {earnings.at[0,'reportDate']}, Days till earnings: {days} days")
+        
+        st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings.at[0,'reportDate']}', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
