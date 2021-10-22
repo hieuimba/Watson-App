@@ -34,8 +34,6 @@ def get_earnings(api_key, horizon, symbol=None):
         url = f"{BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
         response = requests.get(url)
     return pd.read_csv(BytesIO(response.content))
-
-earnings = get_earnings(API_KEY,"6month",'NFLX')
 ##----------DATABASE SETUP--------
 host = st.secrets['db_host']
 user = st.secrets['db_user']
@@ -355,11 +353,10 @@ if option == 'PSC':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        earnings = 123456
-        #get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings.at[0,'reportDate']}', '{size}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
