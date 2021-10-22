@@ -354,6 +354,8 @@ if option == 'PSC':
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
+        days = np.busday_count(earnings, datetime.today())
+        st.text(f"Earnings date: {earnings.at[0,'reportDate']}, Days till earnings: "
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings.at[0,'reportDate']}', '{size}')"
