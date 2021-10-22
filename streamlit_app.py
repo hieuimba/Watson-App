@@ -355,7 +355,7 @@ if option == 'Watchlist':
     one,two = st.columns([1,2])
     with one:
         watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
-        pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = 'setup','qty')
+        pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
         pullback.sort_values(by = 'l/s', inplace = True, ascending = True)
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
