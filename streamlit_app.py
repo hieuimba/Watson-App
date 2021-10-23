@@ -466,9 +466,10 @@ if option == 'PSC':
         earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
         #earnings = earnings.at[0,'reportDate']
         #st.write(type(earnings))
-        days = np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
+        days = 3 
+        #np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
         
-        st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
+        #st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
