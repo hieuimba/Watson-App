@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a60daa76-e1b1-424d-824a-31fc226249d6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/streamlit_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit_app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,7 +36,9 @@
       <workItem from="1634006170165" duration="56000" />
       <workItem from="1634006271168" duration="134000" />
       <workItem from="1634006963081" duration="487000" />
-      <workItem from="1634009272910" duration="350000" />
+      <workItem from="1634009272910" duration="1008000" />
+      <workItem from="1634049616027" duration="160000" />
+      <workItem from="1634049802128" duration="31000" />
     </task>
     <servers />
   </component>
