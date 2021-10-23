@@ -465,7 +465,7 @@ if option == 'PSC':
         
         if bars.iloc[-1]['Symbol'] not in sector_list:
             earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
-            days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings)
+            days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings) + 1 
         else:
             earnings = 'N/A'
             days_to_earnings = 'N/A'
