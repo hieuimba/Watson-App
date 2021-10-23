@@ -289,7 +289,7 @@ if option == 'Watchlist':
                     size = round(risk / abs(distance), 3)
                     try:
                         earnings = get_earnings(api_key,"6month",variable[0].upper()).at[0,'reportDate']
-                    else:
+                    except:
                         earnings = 'N/A'
                     variable.append(target)
                     variable.append('pullback')
