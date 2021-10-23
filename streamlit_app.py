@@ -24,16 +24,17 @@ today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
 risk = st.secrets['risk']  # <--------using static risk
 
 ##----------ALPHA VANTAGE---------
-BASE_URL= 'https://www.alphavantage.co/query?'
-API_KEY = 'AVY04DPX5LIK3XIG'
+api_key = st.secrets['av_api_key']
 def get_earnings(api_key, horizon, symbol=None):
+    base_url= st.secrets['av_url']
     if symbol is not None:
-        url = f'{BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
+        url = f'{base_url}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
         response = requests.get(url)
     else:
-        url = f"{BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
+        url = f"{base_url}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
         response = requests.get(url)
     return pd.read_csv(BytesIO(response.content))
+
 ##----------DATABASE SETUP--------
 host = st.secrets['db_host']
 user = st.secrets['db_user']
