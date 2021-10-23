@@ -465,7 +465,7 @@ if option == 'PSC':
         
         earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
         #earnings = earnings.at[0,'reportDate']
-        #st.write(type(earnings))
+        st.write(earnings)
         days = 3 
         #np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
         
