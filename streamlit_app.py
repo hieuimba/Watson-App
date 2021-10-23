@@ -463,13 +463,17 @@ if option == 'PSC':
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         
-        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
-        earnings = earnings.at[0,'reportDate']
-        st.write(earnings)
-        days = 3 
+        if bars.iloc[-1]['Symbol'] not in sector_list:
+            earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+            st.write(type(earnings))
+            st.write(earnings)
+        else:
+            earnings = 'N/A'
+            days_to_earnings = 'N/A'
+
         #np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
         
-        #st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
+        st.text(f"Earnings date: {earnings}, Days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
