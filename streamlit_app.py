@@ -287,10 +287,14 @@ if option == 'Watchlist':
                     target = variable[2] + variable[2] - variable[3]
                     distance = round(entry - stop, 2)
                     size = round(risk / abs(distance), 3)
+                    try:
+                        earnings = get_earnings(api_key,"6month",variable[0].upper()).at[0,'reportDate']
+                    else:
+                        earnings = 'N/A'
                     variable.append(target)
                     variable.append('pullback')
                     variable.append(today)
-                    variable.append('na')
+                    variable.append(earnings)
                     variable.append(size)
                     add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
                     run_command(positions, add_cmd)
@@ -465,7 +469,7 @@ if option == 'PSC':
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         
         if bars.iloc[-1]['Symbol'] not in sector_list:
-            earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+            earnings = get_earnings(api_key,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
             days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings) + 1 
         else:
             earnings = 'N/A'
