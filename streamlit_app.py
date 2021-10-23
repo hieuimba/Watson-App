@@ -284,11 +284,14 @@ if option == 'Watchlist':
                     except:
                         pass
                 try:
-                    target = variable[2] + variable[2] - variable[3]
+                    symbol = variable[0].upper()
+                    entry = variable[2]
+                    stop = variable[3]
+                    target = entry + entry - stop
                     distance = round(entry - stop, 2)
                     size = round(risk / abs(distance), 3)
                     try:
-                        earnings = get_earnings(api_key,"6month",variable[0].upper()).at[0,'reportDate']
+                        earnings = get_earnings(api_key,"6month",symbol).at[0,'reportDate']
                     except:
                         earnings = 'N/A'
                     variable.append(target)
@@ -296,7 +299,7 @@ if option == 'Watchlist':
                     variable.append(today)
                     variable.append(earnings)
                     variable.append(size)
-                    add_cmd = f"INSERT INTO watchlist VALUES ('{variable[0].upper()}', '{variable[1]}', {variable[2]}, {variable[3]}, '{variable[4]}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
+                    add_cmd = f"INSERT INTO watchlist VALUES ('{symbol}', '{variable[1]}', {entry}, {stop}, '{target}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
                     run_command(positions, add_cmd)
                     st.success(f"Added '{variable[0].upper()}'")
                 except Exception as e:
