@@ -465,14 +465,12 @@ if option == 'PSC':
         
         if bars.iloc[-1]['Symbol'] not in sector_list:
             earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
-            st.write(type(earnings))
-            st.write(earnings)
-            days_to_earnings = np.busday_count(earnings, datetime.today().strftime("%Y-%m-%d"))
+            days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings)
         else:
             earnings = 'N/A'
             days_to_earnings = 'N/A'
         
-        st.text(f"Earnings date: {earnings}, Days till earnings: {days_to_earnings}")
+        st.text(f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
