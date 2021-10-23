@@ -300,6 +300,7 @@ if option == 'Watchlist':
                     run_command(positions, add_cmd)
                     st.success(f"Added '{variable[0].upper()}'")
                 except Exception as e:
+                    st.write(e)
                     st.error("Invalid command, use: \n"
                             "\n" "add/ [symbol]-[l/s]-[entry]-[stop]")
             else:
