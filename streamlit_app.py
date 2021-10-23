@@ -251,121 +251,6 @@ if option == 'Sectors':
     corr_matrix = corr_matrix.background_gradient(cmap = 'Greens', axis = None, subset = pd.IndexSlice[u[-1], :])
     st.table(corr_matrix.format(precision = 3))
 
-##----------CALC SCREEN-----------
-if option == 'PSC':
-    # Get data
-    open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
-
-    '---'
-    symbol_list = run_query_cached(prices, "SELECT symbol FROM symbol_list")
-    symbol_list = symbol_list['symbol'].to_list()
-
-    beta_list = []
-    matrix = pd.DataFrame()
-    corr_matrix = pd.DataFrame()
-    std_dev = pd.DataFrame()
-
-    one, two, three = st.columns([2, 3, 1])
-    with one:
-        risk_options = [10, 20, 30, 50, 80, 100]
-        risk = st.selectbox(label = '$ Risk', options = risk_options, index = 1)
-        entry = st.number_input(label = 'Entry', value = 2.00, step = 0.1)
-        stop = st.number_input(label = 'Stop', value = 1.00, step = 0.1)
-        target = entry + (entry - stop)
-        distance = round(entry - stop, 2)
-        distance_percent = round(abs(distance) / entry, 2) * 100
-        size = round(risk / abs(distance), 3)
-        dollar_size = round(size * entry, 2)
-        direction = 'Long' if distance > 0 else 'Short'
-        st.number_input('Target', min_value = target, max_value = target, value = target)
-        st.text(f'Direction: {direction}')
-        st.subheader(f'Size: {size} share' if size == 1 else f'Size: {size} shares')
-        ''
-        st.text(f'$ Equivalent: $ {dollar_size}')
-        st.subheader('R table:')
-        price_range = [stop, stop + distance / 2, entry, entry + distance / 2, target, entry + distance * 2]
-        price_range = pd.DataFrame(price_range, columns = ['Price'],
-                                   index = ['-1 R', '-1.5 R', '0 R', '0.5 R', '1 R', '2 R']).T
-        st.table(price_range.style.format(precision = 2))
-    with three:
-        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y'], help = '1 month = 21 trading days')
-        if options == '1 M':
-            period = 21
-        elif options == '3 M':
-            period = 63
-        elif options == '6 M':
-            period = 126
-        elif options == '1 Y':
-            period = 252
-    with two:
-        symbol = st.multiselect('Select symbols:', options = symbol_list,
-                                default = ['SPY'] + open_positions.index.values.tolist())
-
-        spy = run_query_cached(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
-        spy['return%'] = spy['Close'].pct_change(1) * 100
-        spy = spy.tail(period)
-        spy['var'] = spy['return%'].var()
-
-        for i in range(0, len(symbol)):
-            if symbol[i] in sector_list:
-                bars = run_query_cached(prices, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
-                bars = bars.fillna('N/A')
-            else:
-                bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
-                bars = bars.fillna('N/A')
-            bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
-                                                      window = 21).average_true_range()
-            bars['return%'] = bars['Close'].pct_change(1) * 100
-            if i == len(symbol) - 1:
-                bars['std dev'] = bars['return%'].rolling(21).std()
-                bars['ATR'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
-                                                          window = 21).average_true_range()
-                bars['avg vol'] = bars['Volume'].rolling(21).mean()
-            bars = bars.tail(period)
-            matrix[f'{symbol[i]}'] = bars['return%'].values
-            corr_matrix = matrix.corr()
-
-            bars['bm_return%'] = spy['return%'].to_list()
-            cov_df = bars[['return%', "bm_return%"]].cov()
-            bm_var = spy.iloc[-1]['var']
-            beta = cov_df.iloc[1, 0] / bm_var
-            beta_list.append(beta)
-
-        temp = pd.DataFrame(index = symbol)
-        temp['Beta-M'] = beta_list
-        temp = temp.T
-        temp2 = pd.DataFrame(index = symbol)
-        temp2['Beta-S'] = 0
-        temp2 = temp2.T
-        corr_matrix = corr_matrix.append(temp)
-        corr_matrix = corr_matrix.append(temp2)
-        u = corr_matrix.index.get_level_values(0)
-        corr_matrix = corr_matrix.style.background_gradient(cmap = 'RdYlGn_r', axis = None,
-                                                            subset = pd.IndexSlice[u[:-2], :])
-        # corr_matrix = corr_matrix.background_gradient(cmap = 'White', axis = None, subset = pd.IndexSlice[u[-1], :])
-        st.table(corr_matrix.format(precision = 3))
-
-        st.text(
-            f"Symbol: {bars.iloc[-1]['Symbol']},    Name: {bars.iloc[-1]['Name']},    Sector: {bars.iloc[-1]['Sector']}")
-        st.text(
-            f"Last: {bars.iloc[-1]['Close']},    Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
-        atr = bars.iloc[-1]['ATR']
-        st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
-        st.text(
-            f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        
-        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
-        earnings = earnings.at[0,'reportDate']
-        st.write(type(earnings))
-        days = np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
-        
-        st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
-        add_to_watchlist = st.button('Add to Watchlist')
-        if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
-            run_command(positions, add_cmd)
-            st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
-
 ##----------WATCHLIST SCREEN------
 if option == 'Watchlist':
     '---'
@@ -474,3 +359,118 @@ if option == 'Watchlist':
             components.html(source_code, height=800)
         else:
             st.text('Watchlist is empty')
+
+##----------CALC SCREEN-----------
+if option == 'PSC':
+    # Get data
+    open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
+
+    '---'
+    symbol_list = run_query_cached(prices, "SELECT symbol FROM symbol_list")
+    symbol_list = symbol_list['symbol'].to_list()
+
+    beta_list = []
+    matrix = pd.DataFrame()
+    corr_matrix = pd.DataFrame()
+    std_dev = pd.DataFrame()
+
+    one, two, three = st.columns([2, 3, 1])
+    with one:
+        risk_options = [10, 20, 30, 50, 80, 100]
+        risk = st.selectbox(label = '$ Risk', options = risk_options, index = 1)
+        entry = st.number_input(label = 'Entry', value = 2.00, step = 0.1)
+        stop = st.number_input(label = 'Stop', value = 1.00, step = 0.1)
+        target = entry + (entry - stop)
+        distance = round(entry - stop, 2)
+        distance_percent = round(abs(distance) / entry, 2) * 100
+        size = round(risk / abs(distance), 3)
+        dollar_size = round(size * entry, 2)
+        direction = 'Long' if distance > 0 else 'Short'
+        st.number_input('Target', min_value = target, max_value = target, value = target)
+        st.text(f'Direction: {direction}')
+        st.subheader(f'Size: {size} share' if size == 1 else f'Size: {size} shares')
+        ''
+        st.text(f'$ Equivalent: $ {dollar_size}')
+        st.subheader('R table:')
+        price_range = [stop, stop + distance / 2, entry, entry + distance / 2, target, entry + distance * 2]
+        price_range = pd.DataFrame(price_range, columns = ['Price'],
+                                   index = ['-1 R', '-1.5 R', '0 R', '0.5 R', '1 R', '2 R']).T
+        st.table(price_range.style.format(precision = 2))
+    with three:
+        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y'], help = '1 month = 21 trading days')
+        if options == '1 M':
+            period = 21
+        elif options == '3 M':
+            period = 63
+        elif options == '6 M':
+            period = 126
+        elif options == '1 Y':
+            period = 252
+    with two:
+        symbol = st.multiselect('Select symbols:', options = symbol_list,
+                                default = ['SPY'] + open_positions.index.values.tolist())
+
+        spy = run_query_cached(prices, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+        spy['return%'] = spy['Close'].pct_change(1) * 100
+        spy = spy.tail(period)
+        spy['var'] = spy['return%'].var()
+
+        for i in range(0, len(symbol)):
+            if symbol[i] in sector_list:
+                bars = run_query_cached(prices, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
+                bars = bars.fillna('N/A')
+            else:
+                bars = run_query_cached(prices, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
+                bars = bars.fillna('N/A')
+            bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
+                                                      window = 21).average_true_range()
+            bars['return%'] = bars['Close'].pct_change(1) * 100
+            if i == len(symbol) - 1:
+                bars['std dev'] = bars['return%'].rolling(21).std()
+                bars['ATR'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
+                                                          window = 21).average_true_range()
+                bars['avg vol'] = bars['Volume'].rolling(21).mean()
+            bars = bars.tail(period)
+            matrix[f'{symbol[i]}'] = bars['return%'].values
+            corr_matrix = matrix.corr()
+
+            bars['bm_return%'] = spy['return%'].to_list()
+            cov_df = bars[['return%', "bm_return%"]].cov()
+            bm_var = spy.iloc[-1]['var']
+            beta = cov_df.iloc[1, 0] / bm_var
+            beta_list.append(beta)
+
+        temp = pd.DataFrame(index = symbol)
+        temp['Beta-M'] = beta_list
+        temp = temp.T
+        temp2 = pd.DataFrame(index = symbol)
+        temp2['Beta-S'] = 0
+        temp2 = temp2.T
+        corr_matrix = corr_matrix.append(temp)
+        corr_matrix = corr_matrix.append(temp2)
+        u = corr_matrix.index.get_level_values(0)
+        corr_matrix = corr_matrix.style.background_gradient(cmap = 'RdYlGn_r', axis = None,
+                                                            subset = pd.IndexSlice[u[:-2], :])
+        # corr_matrix = corr_matrix.background_gradient(cmap = 'White', axis = None, subset = pd.IndexSlice[u[-1], :])
+        st.table(corr_matrix.format(precision = 3))
+
+        st.text(
+            f"Symbol: {bars.iloc[-1]['Symbol']},    Name: {bars.iloc[-1]['Name']},    Sector: {bars.iloc[-1]['Sector']}")
+        st.text(
+            f"Last: {bars.iloc[-1]['Close']},    Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
+        atr = bars.iloc[-1]['ATR']
+        st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
+        st.text(
+            f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
+        
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
+        #earnings = earnings.at[0,'reportDate']
+        st.write(type(earnings))
+        days = np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
+        
+        st.text(f"Earnings date: {earnings}, Days till earnings: {days} days")
+        add_to_watchlist = st.button('Add to Watchlist')
+        if add_to_watchlist:
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
+            run_command(positions, add_cmd)
+            st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
