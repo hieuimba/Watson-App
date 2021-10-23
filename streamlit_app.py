@@ -354,7 +354,8 @@ if option == 'PSC':
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         
-        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
+        earnings = get_earnings(API_KEY,"6month",bars.iloc[-1]['Symbol'])
+        earnings = earnings.at[0,'reportDate']
         st.write(type(earnings))
         days = np.busday_count(str(earnings), datetime.today().strftime("%Y-%m-%d"))
         
