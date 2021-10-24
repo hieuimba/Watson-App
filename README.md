@@ -11,8 +11,8 @@ https://share.streamlit.io/hieuimba/watson-app
  - Upcoming earnings information available in the PSC & watchlist screen
 
 ##### Bug fixes:
- - Fix fractional size issue where quantity returns rounded value*
- - Fix connection pooling error when database connection timesout after a period of time
+ - Fixed fractional size issue where quantity returns rounded value*
+ - Fixed connection pooling error when database connection timesout after a period of time
 
 <sub><sup>*Work around by importing correct values to journal via watchlist</sup></sub>
 
@@ -25,10 +25,10 @@ https://share.streamlit.io/hieuimba/watson-app
  - Interactive TradingView chart
  
 ##### "Add to Watchlist" button from PSC screen
- - Optimize work-flow by sending a watch item directly from PSC screen
+ - Ability to add a watch item directly from PSC screen
  
 ##### Other:
- - Add icon & theme color
+ - Added icon & theme color
  - Post-release fixes
 
 ---
