@@ -4,7 +4,7 @@ https://share.streamlit.io/hieuimba/watson-app
 ##### App Architecture Update
  - Pushed TWS client to server for stable uptime and access availability
  - Scheduled server start and stop time
- - Journal imports now handled automatically with initial stop & target values
+ - Journal records now automatically imported daily with initial stop & target values
  - Server notifications delivered via Discord webhooks
 
 ##### Earnings information
