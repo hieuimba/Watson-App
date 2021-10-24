@@ -8,7 +8,7 @@ https://share.streamlit.io/hieuimba/watson-app
  - Server notifications delivered via Discord webhooks
 
 ##### Earnings information
- - Upcoming earnings information avaiable in the PCS & watchlist screen
+ - Upcoming earnings information available in the PSC & watchlist screen
 
 ##### Bug fixes:
  - Fix fractional size issue where quantity returns rounded value*
