@@ -12,7 +12,7 @@ https://share.streamlit.io/hieuimba/watson-app
 
 ##### Bug fixes:
  - Fix fractional size issue where quantity returns rounded value*
- - Fix connction pooling error when database connection timesout after a period of time
+ - Fix connection pooling error when database connection timesout after a period of time
 
 <sub><sup>*Work around by importing correct values to journal via watchlist</sup></sub>
 
