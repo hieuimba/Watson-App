@@ -2,7 +2,7 @@
 https://share.streamlit.io/hieuimba/watson-app
 ### Ver 3.2.1 - Oct 24, 2021
 ##### App Architecture Update
- - Pushed TWS client to server for stable uptime and ease of access
+ - Pushed TWS client to server for stable uptime and access availability
  - Scheduled server start and stop time
  - Journal imports now handled automatically with initial stop & target values
  - Server notifications delivered via Discord webhooks
