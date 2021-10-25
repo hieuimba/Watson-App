@@ -259,6 +259,7 @@ if option == 'Watchlist':
     with one:
         watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
+        pullback.replace(0, np.nan, inplace=True)
         pullback.sort_values(by = 'l/s', inplace = True, ascending = True)
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
@@ -289,7 +290,10 @@ if option == 'Watchlist':
                     stop = variable[3]
                     target = entry + entry - stop
                     distance = round(entry - stop, 2)
-                    size = round(risk / abs(distance), 3)
+                    if distance == 0:
+                        size = 0
+                    else:
+                        size = round(risk / abs(distance), 3)
                     try:
                         earnings = get_earnings(api_key,"6month",symbol).at[0,'reportDate']
                     except:
