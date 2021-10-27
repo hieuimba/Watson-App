@@ -260,7 +260,7 @@ if option == 'Watchlist':
         watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
         pullback.replace(0, np.nan, inplace=True)
-        pullback.sort_values(by = 'l/s', inplace = True, ascending = True)
+        pullback.sort_values(by = ['l/s','entry'], inplace = True, ascending = [True,False])
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
                                                     'stop': '{0:.2f}',
