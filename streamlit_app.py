@@ -65,7 +65,7 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text("https://github.com/hieuimba/Watson-App")
+    st.text("github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     
