@@ -17,7 +17,7 @@ import requests
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
 icon = Image.open('favicon.ico')
-#st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')
+st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')
 st.markdown("<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 st.markdown("<style>header {visibility: hidden;}</style>", unsafe_allow_html=True)
 today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
@@ -80,13 +80,6 @@ elif option == 'PSC':
     st.markdown(f"<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>", unsafe_allow_html = True)
 else:
     st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
-
-
-open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
-closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
-total_pnl = '{0:.2f}'.format((open_positions['unrlzd p&l'].sum() + closed_orders['rlzd p&l'].sum()) / risk,
-                             2) + ' R'
-st.set_page_config(layout = 'wide', page_title = f'Watson 3 - {total_pnl}', page_icon = '🔧')    
     
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
