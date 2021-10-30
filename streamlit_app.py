@@ -65,7 +65,7 @@ one, two, three, four = st.columns([1,0.25,2.75,1])
 with two:
     st.image(icon)
 with three:
-    st.text("https://github.com/hieuimba/Watson-App")
+    #st.text("github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
     
     
@@ -74,11 +74,13 @@ with two:
     option = st.radio('', options = ['Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors'])
     
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
-if option != 'PSC':
-    st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
+if option == 'Positions':
+    st.markdown(f"<h1 style='text-align: center; color: black;'>Current Positions</h1>", unsafe_allow_html = True)
 elif option == 'PSC':
     st.markdown(f"<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>", unsafe_allow_html = True)
-
+else:
+    st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
+    
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
     # Get data
@@ -259,7 +261,8 @@ if option == 'Watchlist':
     with one:
         watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
-        pullback.sort_values(by = 'l/s', inplace = True, ascending = True)
+        pullback.replace(0, np.nan, inplace=True)
+        pullback.sort_values(by = ['l/s','entry'], inplace = True, ascending = [True,False])
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
                                                     'stop': '{0:.2f}',
@@ -289,7 +292,10 @@ if option == 'Watchlist':
                     stop = variable[3]
                     target = entry + entry - stop
                     distance = round(entry - stop, 2)
-                    size = round(risk / abs(distance), 3)
+                    if distance == 0:
+                        size = 0
+                    else:
+                        size = round(risk / abs(distance), 3)
                     try:
                         earnings = get_earnings(api_key,"6month",symbol).at[0,'reportDate']
                     except:
@@ -303,7 +309,6 @@ if option == 'Watchlist':
                     run_command(positions, add_cmd)
                     st.success(f"Added '{variable[0].upper()}'")
                 except Exception as e:
-                    st.write(e)
                     st.error("Invalid command, use: \n"
                             "\n" "add/ [symbol]-[l/s]-[entry]-[stop]")
             else:
