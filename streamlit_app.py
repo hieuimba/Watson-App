@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 
 from io import BytesIO
 import requests
+import datetime as dt
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 ##----------LAYOUT SETUP----------
 icon = Image.open('favicon.ico')
@@ -58,6 +59,14 @@ def run_command(connection, query):
 positions = db_connect('positions')
 prices = db_connect('prices')
 
+##----------OTHER-----------------
+def isNowInTimePeriod(startTime, endTime, nowTime):
+    if startTime < endTime:
+        return nowTime >= startTime and nowTime <= endTime
+    else:
+        #Over midnight:
+        return nowTime >= startTime or nowTime <= endTime
+
 ##---------------------------------------------DASHBOARD ELEMENTS-----------------------------------------------------##
 ##----------HEADER----------------
 updated = run_query(positions, "SELECT Updated FROM updated")
@@ -67,12 +76,16 @@ with two:
 with three:
     #st.text("github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
-    
-    
+
 one, two, three = st.columns([1,3,1])
+premarket = isNowInTimePeriod(dt.time(13,00), dt.time(17,00), dt.datetime.now().time())
+
 with two:
-    option = st.radio('', options = ['Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors'])
-    
+    if premarket == True:
+        option = st.radio('', options = ['Pre-market','Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors'])
+    else:
+        option = st.radio('', options = ['Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors','Pre-market'])
+
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 if option == 'Positions':
     st.markdown(f"<h1 style='text-align: center; color: black;'>Current Positions</h1>", unsafe_allow_html = True)
@@ -80,14 +93,14 @@ elif option == 'PSC':
     st.markdown(f"<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>", unsafe_allow_html = True)
 else:
     st.markdown(f"<h1 style='text-align: center; color: black;'>{option}</h1>", unsafe_allow_html = True)
-    
+
 ##----------POSITIONS SCREEN------
 if option == 'Positions':
     # Get data
     open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
     closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
     closed_positions = closed_orders.copy()
-   
+
     # Calcs
     unrealized_pnl = '{0:.2f}'.format(open_positions['unrlzd p&l'].sum() / risk) + ' R'
     realized_pnl = '{0:.2f}'.format(closed_orders['rlzd p&l'].sum() / risk) + ' R'
@@ -476,14 +489,14 @@ if option == 'PSC':
         st.text(f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        
+
         if bars.iloc[-1]['Symbol'] not in sector_list:
             earnings = get_earnings(api_key,"6month",bars.iloc[-1]['Symbol']).at[0,'reportDate']
-            days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings) + 1 
+            days_to_earnings = np.busday_count(datetime.today().strftime("%Y-%m-%d"), earnings) + 1
         else:
             earnings = 'N/A'
             days_to_earnings = 'N/A'
-        
+
         st.text(f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
