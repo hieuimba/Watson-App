@@ -100,7 +100,7 @@ if option == 'Positions':
     open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
     closed_orders = run_query(positions, "SELECT * FROM closed_orders", 'symbol')
     #closed_positions = closed_orders.copy()
-    closed_positions = closed_orders[closed_orders.symbol != 'TSLA']
+    closed_positions = closed_orders[closed_orders.index != 'TSLA']
 
     # Calcs
     unrealized_pnl = '{0:.2f}'.format(open_positions['unrlzd p&l'].sum() / risk) + ' R'
