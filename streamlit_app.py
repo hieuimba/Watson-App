@@ -104,8 +104,8 @@ if option == 'Positions':
 
     # Calcs
     unrealized_pnl = '{0:.2f}'.format(open_positions['unrlzd p&l'].sum() / risk) + ' R'
-    realized_pnl = '{0:.2f}'.format(closed_orders['rlzd p&l'].sum() / risk) + ' R'
-    total_pnl = '{0:.2f}'.format((open_positions['unrlzd p&l'].sum() + closed_orders['rlzd p&l'].sum()) / risk,
+    realized_pnl = '{0:.2f}'.format(closed_orders[closed_orders.index != 'TSLA']['rlzd p&l'].sum() / risk) + ' R'
+    total_pnl = '{0:.2f}'.format((open_positions['unrlzd p&l'].sum() + closed_orders[closed_orders.index != 'TSLA']['rlzd p&l'].sum()) / risk,
                                  2) + ' R'
     total_open_risk = '{0:.2f}'.format(open_positions['open risk'].sum() / risk) + ' R'
 
