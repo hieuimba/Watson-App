@@ -78,7 +78,7 @@ with three:
     st.caption(f'Updated: {updated.iat[0, 0]}')
 
 one, two, three = st.columns([1,3,1])
-premarket = isNowInTimePeriod(dt.time(13,00), dt.time(17,00), dt.datetime.now().time())
+premarket = isNowInTimePeriod(dt.time(13,00), dt.time(13,30), dt.datetime.now().time())
 
 with two:
     if premarket == True:
