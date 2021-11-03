@@ -512,7 +512,9 @@ if option == 'Journal':
     journal = journal.drop(columns=['Quantity', 'Commission'])
     journal['ID'] = journal['ID'].astype(str)
     journal = journal.set_index('ID')
-    st.table(journal.style.format({'Price': '{0:.2f}',
+    one, two, three = st.columns([1, 3, 1])
+    with two:
+        st.table(journal.style.format({'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
                                       'Take Profit': '{0:.2f}',
