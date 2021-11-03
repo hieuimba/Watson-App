@@ -511,7 +511,7 @@ if option == 'Journal':
     journal = run_query(temp, "SELECT * FROM journal", "ID")
     journal = journal.tail(5)
     journal = journal.drop(columns=['Quantity', 'Commission'])
-    st.table(journal.style.format({journal.index : '{0:.2f}',
+    st.table(journal.style.format({index : '{0:.2f}',
                                       'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
