@@ -518,7 +518,7 @@ if option == 'Journal':
     journal_full = journal_full.set_index('ID')
     one, two, three = st.columns([1, 3, 1])
     with two:
-        st.text('Last 5 trades')
+        st.text('Most recent trades')
         st.table(journal_full.style.format({'Entry': '{0:.2f}',
                                       'Stop': '{0:.2f}',
                                       'Target': '{0:.2f}',
@@ -526,7 +526,7 @@ if option == 'Journal':
                                       'ExitFilled': '{0:.2f}',
                                       'ATR': '{0:.2f}'},
                                      na_rep = 'N/A'))
-        st.text('Last 10 orders')
+        st.text('Most recent orders')
         st.table(journal.style.format({'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
