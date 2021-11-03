@@ -58,6 +58,7 @@ def run_command(connection, query):
 
 positions = db_connect('positions')
 prices = db_connect('prices')
+temp = db_connect('temp')
 
 ##----------OTHER-----------------
 def isNowInTimePeriod(startTime, endTime, nowTime):
@@ -82,9 +83,9 @@ premarket = isNowInTimePeriod(dt.time(13,00), dt.time(13,30), dt.datetime.now().
 
 with two:
     if premarket == True:
-        option = st.radio('', options = ['Pre-market','Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors'])
+        option = st.radio('', options = ['Pre-market','Positions', 'PSC', 'Watchlist', 'Orders', 'Journal' , 'Sectors'])
     else:
-        option = st.radio('', options = ['Positions', 'PSC', 'Watchlist', 'Orders', 'Sectors','Pre-market'])
+        option = st.radio('', options = ['Positions', 'PSC', 'Watchlist', 'Orders', 'Journal', 'Sectors','Pre-market'])
 
 st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html = True)
 if option == 'Positions':
@@ -504,3 +505,9 @@ if option == 'PSC':
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
             run_command(positions, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
+            
+##----------JOURNAL---------------
+if option == 'Journal':
+    journal = run_query(temp, "SELECT * FROM journal", 'symbol')
+    journal = journal.drop(columns=['Quantity'])
+    st.table(journal)
