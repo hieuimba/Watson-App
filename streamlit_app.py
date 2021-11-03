@@ -508,7 +508,7 @@ if option == 'PSC':
             
 ##----------JOURNAL---------------
 if option == 'Journal':
-    journal = run_query(temp, "SELECT * FROM journal").tail(5)
+    journal = run_query(temp, "SELECT * FROM journal").tail(10)
     journal_full = run_query(temp, "SELECT * FROM journal_full").tail(5)
     journal = journal.drop(columns=['Quantity', 'Commission'])
     journal_full = journal_full.drop(columns=['Quantity'])
@@ -526,7 +526,7 @@ if option == 'Journal':
                                       'ExitFilled': '{0:.2f}',
                                       'ATR': '{0:.2f}'},
                                      na_rep = 'N/A'))
-        st.text('Last 5 orders')
+        st.text('Last 10 orders')
         st.table(journal.style.format({'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
