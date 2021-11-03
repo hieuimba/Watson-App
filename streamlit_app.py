@@ -510,12 +510,11 @@ if option == 'PSC':
 if option == 'Journal':
     journal = run_query(temp, "SELECT * FROM journal", "ID")
     journal = journal.tail(5)
-    journal = journal.drop(columns=['Quantity'])
-    st.table(journal.style.format({'ID': '{0:.2f}',
+    journal = journal.drop(columns=['Quantity', 'Commission'])
+    st.table(journal.style.format({journal.index : '{0:.2f}',
                                       'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
                                       'Take Profit': '{0:.2f}',
-                                      'Commission': '{0:.2f} R',
-                                      'ATR': '{0:.2f} R'},
+                                      'ATR': '{0:.2f}'},
                                      na_rep = 'N/A'))
