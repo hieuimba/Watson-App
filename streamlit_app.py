@@ -508,10 +508,11 @@ if option == 'PSC':
             
 ##----------JOURNAL---------------
 if option == 'Journal':
-    journal = run_query(temp, "SELECT * FROM journal")
-    journal['ID'] = journal['ID'].round(decimals=1).astype(object)
-    journal = journal.tail(5)
+    journal = run_query(temp, "SELECT * FROM journal").tail(5)
     journal = journal.drop(columns=['Quantity', 'Commission'])
+    journal['ID'] = journal['ID'].astype(str)
+    journal['ID'] = journal['ID'].str.replace('.0', ' ')
+    journal.set_index('ID')
     st.table(journal.style.format({'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
