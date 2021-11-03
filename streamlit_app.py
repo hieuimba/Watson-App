@@ -511,14 +511,26 @@ if option == 'Journal':
     journal = run_query(temp, "SELECT * FROM journal").tail(5)
     journal_full = run_query(temp, "SELECT * FROM journal_full").tail(5)
     journal = journal.drop(columns=['Quantity', 'Commission'])
+    journal_full = journal_full.drop(columns=['Quantity'])
     journal['ID'] = journal['ID'].astype(str)
+    journal_full['ID'] = journal_full['ID'].astype(str)
     journal = journal.set_index('ID')
+    journal_full = journal_full.set_index('ID')
     one, two, three = st.columns([1, 3, 1])
     with two:
+        st.text('Last 5 trades')
+        st.table(journal_full.style.format({'Entry': '{0:.2f}',
+                                      'Stop': '{0:.2f}',
+                                      'Target': '{0:.2f}',
+                                      'Exit': '{0:.2f}',
+                                      'ExitFilled': '{0:.2f}',
+                                      'ATR': '{0:.2f}'},
+                                     na_rep = 'N/A'))
+        st.text('Last 5 orders')
         st.table(journal.style.format({'Price': '{0:.2f}',
                                       'Fill at': '{0:.2f}',
                                       'Stop': '{0:.2f}',
                                       'Take Profit': '{0:.2f}',
                                       'ATR': '{0:.2f}'},
                                      na_rep = 'N/A'))
-        st.table(journal_full)
+        
