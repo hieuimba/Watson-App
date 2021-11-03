@@ -517,4 +517,4 @@ if option == 'Journal':
                                       'Stop': '{0:.2f}',
                                       'Take Profit': '{0:.2f}',
                                       'ATR': '{0:.2f}'},
-                                     na_rep = 'N/A'))
+                                     na_rep = 'N/A').hide_index())
