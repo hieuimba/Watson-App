@@ -508,6 +508,6 @@ if option == 'PSC':
             
 ##----------JOURNAL---------------
 if option == 'Journal':
-    journal = run_query(temp, "SELECT * FROM journal", 'symbol')
+    journal = run_query(temp, "SELECT * FROM journal", 'ID')
     journal = journal.drop(columns=['Quantity'])
     st.table(journal)
