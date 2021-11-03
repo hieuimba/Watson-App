@@ -509,6 +509,7 @@ if option == 'PSC':
 ##----------JOURNAL---------------
 if option == 'Journal':
     journal = run_query(temp, "SELECT * FROM journal").tail(5)
+    journal_full = run_query(temp, "SELECT * FROM journal_full").tail(5)
     journal = journal.drop(columns=['Quantity', 'Commission'])
     journal['ID'] = journal['ID'].astype(str)
     journal = journal.set_index('ID')
@@ -520,3 +521,4 @@ if option == 'Journal':
                                       'Take Profit': '{0:.2f}',
                                       'ATR': '{0:.2f}'},
                                      na_rep = 'N/A'))
+        st.table(journal_full)
