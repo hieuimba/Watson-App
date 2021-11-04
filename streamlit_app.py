@@ -275,9 +275,14 @@ if option == 'Watchlist':
     one,two = st.columns([1,2])
     with one:
         watchlist = run_query(positions, "SELECT * FROM watchlist", 'symbol')
+        open_positions = run_query(positions, "SELECT * FROM open_positions", 'symbol')
+        in_progress_symbols = open_positions.index.to_list()
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
         pullback.replace(0, np.nan, inplace=True)
         pullback.sort_values(by = ['l/s','entry'], inplace = True, ascending = [True,False])
+        all = pullback
+        in_progress = pullback[pullback.index in in_progress_symbol]
+        st.table(in_progress)
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
                                                     'stop': '{0:.2f}',
