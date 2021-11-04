@@ -288,7 +288,7 @@ if option == 'Watchlist':
         setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
         setting_up = all[setting_up_boolean]
         
-        watchlist_type = st.radio("",("All","In Progress","Setting Up"))
+        watchlist_type = st.radio("",("Setting Up","In Progress","All"))
         if watchlist_type == "All":
             st.table(all.style.format({'qty': '{0:.2f}',
                                             'entry': '{0:.2f}',
