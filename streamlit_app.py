@@ -280,7 +280,7 @@ if option == 'Watchlist':
         
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
         pullback.replace(0, np.nan, inplace=True)
-        pullback.sort_values(by = ['date added','l/s','entry'], inplace = True, ascending = [True,True,False])
+        pullback.sort_values(by = ['l/s',pullback.index], inplace = True, ascending = [True,True], na_position='last')
         
         all = pullback
         in_progress_boolean = pullback.index.isin(in_progress_symbols)        
