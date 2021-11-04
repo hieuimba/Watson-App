@@ -281,15 +281,32 @@ if option == 'Watchlist':
         pullback = watchlist[watchlist['setup'] == 'pullback'].drop(columns = ['setup','qty'])
         pullback.replace(0, np.nan, inplace=True)
         pullback.sort_values(by = ['l/s','entry'], inplace = True, ascending = [True,False])
+        
         all = pullback
-        in_progress_boolean = pullback.index.isin(in_progress_symbols)
-        in_progress = pullback[in_progress_boolean]
-        st.table(in_progress)
-        st.table(pullback.style.format({'qty': '{0:.2f}',
-                                                    'entry': '{0:.2f}',
-                                                    'stop': '{0:.2f}',
-                                                    'target': '{0:.2f}'},
-                                                   na_rep='N/A'))
+        in_progress_boolean = pullback.index.isin(in_progress_symbols)        
+        in_progress = all[in_progress_boolean]
+        setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
+        setting_up = all[setting_up_boolean]
+        
+        watchlist_type = st.radio("",("All","In Progress","Setting Up"))
+        if watchlist_type == "All":
+            st.table(all.style.format({'qty': '{0:.2f}',
+                                            'entry': '{0:.2f}',
+                                            'stop': '{0:.2f}',
+                                            'target': '{0:.2f}'},
+                                           na_rep='N/A'))
+        if watchlist_type == "In Progress":
+            st.table(in_progress.style.format({'qty': '{0:.2f}',
+                                            'entry': '{0:.2f}',
+                                            'stop': '{0:.2f}',
+                                            'target': '{0:.2f}'},
+                                           na_rep='N/A'))
+        if watchlist_type == "Setting Up":
+            st.table(setting_up.style.format({'qty': '{0:.2f}',
+                                            'entry': '{0:.2f}',
+                                            'stop': '{0:.2f}',
+                                            'target': '{0:.2f}'},
+                                           na_rep='N/A'))
 
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
