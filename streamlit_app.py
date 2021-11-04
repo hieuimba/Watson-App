@@ -281,7 +281,7 @@ if option == 'Watchlist':
         pullback.replace(0, np.nan, inplace=True)
         pullback.sort_values(by = ['l/s','entry'], inplace = True, ascending = [True,False])
         all = pullback
-        in_progress = pullback[pullback.index in in_progress_symbol]
+        in_progress = pullback[pullback.index in in_progress_symbols]
         st.table(in_progress)
         st.table(pullback.style.format({'qty': '{0:.2f}',
                                                     'entry': '{0:.2f}',
