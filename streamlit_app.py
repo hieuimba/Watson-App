@@ -454,7 +454,7 @@ if screen == 'Watchlist':
             st.text('Watchlist is empty')
 
 # ----------CALC SCREEN-----------
-if option == 'PSC':
+if screen == 'PSC':
     # Get data
     open_positions = runQuery(
         POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
@@ -582,7 +582,7 @@ if option == 'PSC':
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
 # ----------JOURNAL---------------
-if option == 'Journal':
+if screen == 'Journal':
     journal = runQuery(TEMP_DB, "SELECT * FROM journal order by ID").tail(10)
     journal_full = runQuery(
         TEMP_DB, "SELECT * FROM journal_full order by ID").tail(5)
