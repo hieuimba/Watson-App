@@ -80,7 +80,7 @@ pre_market = isNowInTimePeriod(
 HORIZONTAL_RADIO = "<style>div.row-widget.stRadio > div{flex-direction:row;}</style>"
 POSITIONS_HEADING = "<h1 style='text-align: center; color: black;'>Current Positions</h1>"
 PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>"
-OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
+
 updated = runQuery(POSITIONS_DB, "SELECT Updated FROM updated")
 
 one, two, three, four = st.columns([1, 0.25, 2.75, 1])
@@ -99,6 +99,7 @@ with two:
         screen = st.radio('', options=[
                           'Positions', 'PSC', 'Watchlist', 'Orders', 'Journal', 'Sectors', 'Pre-market'])
 st.markdown(HORIZONTAL_RADIO, unsafe_allow_html=True)
+OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
 
 if screen == 'Positions':
     st.markdown(POSITIONS_HEADING, unsafe_allow_html=True)
