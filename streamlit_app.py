@@ -373,7 +373,7 @@ if screen == 'Watchlist':
                         size = round(RISK / abs(distance), 3)
                     try:
                         earnings = get_earnings(
-                            api_key, "6month", symbol).at[0, 'reportDate']
+                            API_KEY, "6month", symbol).at[0, 'reportDate']
                     except:
                         earnings = 'N/A'
                     variable.append(target)
@@ -566,7 +566,7 @@ if screen == 'PSC':
 
         if bars.iloc[-1]['Symbol'] not in sector_list:
             earnings = get_earnings(
-                api_key, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
+                API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
             days_to_earnings = np.busday_count(
                 datetime.today().strftime("%Y-%m-%d"), earnings) + 1
         else:
