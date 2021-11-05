@@ -85,7 +85,7 @@ updated = runQuery(POSITIONS_DB, "SELECT Updated FROM updated")
 
 one, two, three, four = st.columns([1, 0.25, 2.75, 1])
 with two:
-    st.image(icon)
+    st.image(page_icon)
 with three:
     # st.text("github.com/hieuimba/Watson-App")
     st.caption(f'Updated: {updated.iat[0, 0]}')
