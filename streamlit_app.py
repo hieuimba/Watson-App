@@ -20,6 +20,7 @@ import datetime as dt
 RISK = st.secrets['risk']
 FAVICON_PATH = "favicon.ico"
 API_KEY = st.secrets['av_api_key']
+API_BASE_URL = st.secrets['av_url']
 DB_HOST = st.secrets['db_host']
 DB_USER = st.secrets['db_user']
 DB_PASSWORD = st.secrets['db_password']
@@ -38,12 +39,11 @@ st.markdown(HIDE_SETTINGS, unsafe_allow_html=True)
 
 # ----------ALPHA VANTAGE---------
 def get_earnings(api_key, horizon, symbol=None):
-    base_url = st.secrets['av_url']
     if symbol is not None:
-        url = f'{base_url}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
+        url = f'{API_BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
         response = requests.get(url)
     else:
-        url = f"{base_url}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
+        url = f"{API_BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
         response = requests.get(url)
     return pd.read_csv(BytesIO(response.content))
 
