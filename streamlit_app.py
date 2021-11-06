@@ -23,6 +23,8 @@ API_KEY = st.secrets['av_api_key']
 DB_HOST = st.secrets['db_host']
 DB_USER = st.secrets['db_user']
 DB_PASSWORD = st.secrets['db_password']
+TRADINGVIEW = 'html/tradingview.html'
+TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
 
 # ----------LAYOUT SETUP----------
@@ -208,7 +210,7 @@ if screen == 'Positions':
     with two:
         select_chart = list(open_positions.index.values) + \
             list(closed_positions.index.values) + ['SPY']
-        tradingview = open('html/tradingview.html', 'r', encoding='utf-8')
+        tradingview = open(TRADINGVIEW, 'r', encoding='utf-8')
         source_code = tradingview.read()
 
         select = st.selectbox('', (select_chart))
@@ -444,7 +446,7 @@ if screen == 'Watchlist':
             selections = str(selections)[1:-1]
 
             tradingview = open(
-                'html/tradingview_watchlist.html', 'r', encoding='utf-8')
+                TRADINGVIEW_WATCHLIST, 'r', encoding='utf-8')
             source_code = tradingview.read()
             source_code = source_code.replace("'list'", selections)
             source_code = source_code.replace(
