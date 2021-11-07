@@ -679,14 +679,18 @@ if screen == 'Journal':
                             else:
                                 st.error("Incorrect password")
             if select_view == 'Gallery':
-                st.table(journal.style.format({'Price': '{0:.2f}',
-                                               'Fill at': '{0:.2f}',
-                                               'Stop': '{0:.2f}',
-                                               'Take Profit': '{0:.2f}',
-                                               'Quantity': '{0:.2f}',
-                                               'Commission': '{0:.2f}',
-                                               'ATR': '{0:.2f}'},
-                                              na_rep = 'N/A'))
+                for i in reversed(journal_full.index.to_list()):
+                    i_int = int(float(i))
+                    st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                             width = 700)
+                # st.table(journal.style.format({'Price': '{0:.2f}',
+                #                                'Fill at': '{0:.2f}',
+                #                                'Stop': '{0:.2f}',
+                #                                'Take Profit': '{0:.2f}',
+                #                                'Quantity': '{0:.2f}',
+                #                                'Commission': '{0:.2f}',
+                #                                'ATR': '{0:.2f}'},
+                #                               na_rep = 'N/A'))
     elif password == "":
         pass
     else:
