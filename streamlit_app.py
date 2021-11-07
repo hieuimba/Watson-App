@@ -681,6 +681,7 @@ if screen == 'Journal':
             if select_view == 'Gallery':
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
+                    symbol = journal_full.at[i, 'Symbol']
                     st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
                              width = 700)
                 # st.table(journal.style.format({'Price': '{0:.2f}',
