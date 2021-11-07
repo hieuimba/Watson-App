@@ -26,6 +26,7 @@ DB_USER = st.secrets['db_user']
 DB_PASSWORD = st.secrets['db_password']
 TRADINGVIEW = 'html/tradingview.html'
 TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
+JOURNAL_PASSWORD = st.secrets['journal_password']
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
 
 
@@ -601,14 +602,12 @@ if screen == 'Journal':
         TEMP_DB, "SELECT * FROM journal_full order by ID")
     journal_cmt = runQuery(TEMP_DB, "SELECT * FROM journal_cmt order by ID")
 
-    correct_password = 'aapl'
-
     one, two, three = st.columns([1, 3, 1])
     with two:
         text_input_container = st.empty()
         password = text_input_container.text_input("Enter password", type = "password")
 
-    if password == correct_password:
+    if password == JOURNAL_PASSWORD:
         text_input_container.empty()
 
         journal['ID'] = journal['ID'].astype(str)
@@ -671,7 +670,7 @@ if screen == 'Journal':
 
                         if user_input != '':
                             confirm = st.text_input(f"{i_int}. Enter password", type = "password")
-                            if confirm == correct_password:
+                            if confirm == JOURNAL_PASSWORD:
                                 add_cmd = f"""UPDATE journal_cmt SET Comment = "{user_input}" WHERE ID = {i_int}"""
                                 runCommand(TEMP_DB, add_cmd)
                                 st.success("Comment added")
