@@ -481,6 +481,7 @@ if screen == 'Watchlist':
                                                'target': '{0:.2f}'},
                                               na_rep = 'N/A'))
         if watchlist_type == "Setting Up":
+            setting_up = setting_up[setting_up['entry'].notna()]
             st.table(setting_up.style.format({'qty': '{0:.2f}',
                                               'entry': '{0:.2f}',
                                               'stop': '{0:.2f}',
@@ -491,7 +492,7 @@ if screen == 'Watchlist':
                                               'entry': '{0:.2f}',
                                               'stop': '{0:.2f}',
                                               'target': '{0:.2f}'},
-                                             na_rep = 'N/A'))                                                  
+                                             na_rep = 'N/A'))  
                                                 
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
