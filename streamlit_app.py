@@ -98,7 +98,7 @@ one, two, three, four = st.columns([1, 0.25, 2.75, 1])
 with two:
     st.image(page_icon)
 with three:
-    # st.text("github.com/hieuimba/Watson-App")
+    st.text("It is a series of lessons, with the greatest for the last.")
     st.caption(f'Updated: {updated.iat[0, 0]}')
 
 one, two, three = st.columns([1, 3, 1])
@@ -461,12 +461,13 @@ if screen == 'Watchlist':
                              inplace = True, ascending = [True, True])
 
         all = pullback
-        in_progress_boolean = pullback.index.isin(in_progress_symbols)
+        in_progress_boolean = pullback.index.isin(in_pro"gress_symbols)
         in_progress = all[in_progress_boolean]
         setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
         setting_up = all[setting_up_boolean]
+        inbox = pullback[pullback['entry'].isna()]                                          
 
-        watchlist_type = st.radio("", ("Setting Up", "In Progress", "All"))
+        watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index = 1)
         if watchlist_type == "All":
             st.table(all.style.format({'qty': '{0:.2f}',
                                        'entry': '{0:.2f}',
@@ -485,7 +486,13 @@ if screen == 'Watchlist':
                                               'stop': '{0:.2f}',
                                               'target': '{0:.2f}'},
                                              na_rep = 'N/A'))
-
+        if watchlist_type == "Inbox":
+            st.table(inbox.style.format({'qty': '{0:.2f}',
+                                              'entry': '{0:.2f}',
+                                              'stop': '{0:.2f}',
+                                              'target': '{0:.2f}'},
+                                             na_rep = 'N/A'))                                                  
+                                                
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
 
