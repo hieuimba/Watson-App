@@ -461,7 +461,7 @@ if screen == 'Watchlist':
                              inplace = True, ascending = [True, True])
 
         all = pullback
-        in_progress_boolean = pullback.index.isin(in_pro"gress_symbols)
+        in_progress_boolean = pullback.index.isin(in_progress_symbols)
         in_progress = all[in_progress_boolean]
         setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
         setting_up = all[setting_up_boolean]
