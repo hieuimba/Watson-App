@@ -29,8 +29,8 @@ TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
 JOURNAL_PASSWORD = st.secrets['journal_password']
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
 
-
 # ----------LAYOUT SETUP----------
+today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
 HIDE_SETTINGS = "<style>header {visibility: hidden;}</style>"
 page_icon = Image.open(FAVICON_PATH)
@@ -41,7 +41,7 @@ st.markdown(HIDE_SETTINGS, unsafe_allow_html = True)
 
 
 # ----------ALPHA VANTAGE---------
-def get_earnings(api_key, horizon, symbol=None):
+def get_earnings(api_key, horizon, symbol = None):
     if symbol is not None:
         url = f'{API_BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
         response = requests.get(url)
@@ -49,6 +49,7 @@ def get_earnings(api_key, horizon, symbol=None):
         url = f"{API_BASE_URL}function=EARNINGS_CALENDAR&horizon={horizon}&apikey={api_key}"
         response = requests.get(url)
     return pd.read_csv(BytesIO(response.content))
+
 
 # ----------DATABASE SETUP--------
 @st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 7200)
@@ -98,7 +99,7 @@ one, two, three, four = st.columns([1, 0.25, 2.75, 1])
 with two:
     st.image(page_icon)
 with three:
-    st.text("It is a series of lessons, with the greatest for the last.")
+    st.text("")
     st.caption(f'Updated: {updated.iat[0, 0]}')
 
 one, two, three = st.columns([1, 3, 1])
@@ -160,7 +161,7 @@ if screen == 'Positions':
     closed_positions = closed_positions[closed_positions['status'] == 'Filled']
     closed_positions = closed_positions[(
                                                 closed_positions['l/s'] == 'long') | (
-                                                    closed_positions['l/s'] == 'short')]
+                                                closed_positions['l/s'] == 'short')]
     closed_positions = closed_positions.drop(
         columns = ['action', 'type', 'status', 'time', 'price', 'filled qty', 'comm.'])
     closed_positions['entry'] = 0
@@ -188,8 +189,9 @@ if screen == 'Positions':
     '---'
     one, two, three = st.columns([1, 3, 1])
     with two:
-        open_positisons = open_positions.sort_values(
+        open_positions = open_positions.sort_values(
             by = 'unrlzd p&l', ascending = False)
+        open_positions = open_positions.drop(columns = ['qty'])
         st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
                 f'{len(open_positions)} trades in progress...')
         st.table(open_positions.style.format({'qty': '{0:.2f}',
@@ -204,6 +206,7 @@ if screen == 'Positions':
         if len(closed_positions) > 0:
             closed_positions = closed_positions.sort_values(
                 by = 'rlzd p&l', ascending = False)
+            closed_positions = closed_positions.drop(columns = ['qty'])
             st.text(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
                     f'{len(closed_positions)} closed trades')
             st.table(closed_positions.style.format({'qty': '{0:.2f}',
@@ -239,19 +242,19 @@ if screen == 'Orders':
         open_orders.drop(columns = ['filled qty'], inplace = True)
         open_orders = open_orders[['action', 'type', 'qty', 'price', 'status']]
         st.table(open_orders.style.format({'qty': '{0:.2f}',
-                                               'price': '{0:.2f}'},
-                                              na_rep = 'N/A'))
+                                           'price': '{0:.2f}'},
+                                          na_rep = 'N/A'))
 
         # Closed orders
         st.text(f'{len(closed_orders)} closed orders')
         closed_orders.sort_values(by = 'status', inplace = True, ascending = False)
-        closed_orders.drop(columns = ['rlzd p&l','filled qty'], inplace = True)
-        closed_orders = closed_orders[['action', 'type', 'qty', 'price','filled at','status', 'time']]
+        closed_orders.drop(columns = ['rlzd p&l', 'filled qty'], inplace = True)
+        closed_orders = closed_orders[['action', 'type', 'qty', 'price', 'filled at', 'status', 'time']]
         st.table(closed_orders.style.format({'qty': '{0:.2f}',
-                                                 'price': '{0:.2f}',
-                                                 'filled at': '{0:.2f}',
-                                                 'comm.': '{0:.2f}'},
-                                                na_rep = 'N/A'))
+                                             'price': '{0:.2f}',
+                                             'filled at': '{0:.2f}',
+                                             'comm.': '{0:.2f}'},
+                                            na_rep = 'N/A'))
 
 # ----------SECTORS SCREEN--------
 sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF',
@@ -465,7 +468,7 @@ if screen == 'Watchlist':
         in_progress = all[in_progress_boolean]
         setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
         setting_up = all[setting_up_boolean]
-        inbox = pullback[pullback['entry'].isna()]                                          
+        inbox = pullback[pullback['entry'].isna()]
 
         watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index = 1)
         if watchlist_type == "All":
@@ -489,11 +492,11 @@ if screen == 'Watchlist':
                                              na_rep = 'N/A'))
         if watchlist_type == "Inbox":
             st.table(inbox.style.format({'qty': '{0:.2f}',
-                                              'entry': '{0:.2f}',
-                                              'stop': '{0:.2f}',
-                                              'target': '{0:.2f}'},
-                                             na_rep = 'N/A'))  
-                                                
+                                         'entry': '{0:.2f}',
+                                         'stop': '{0:.2f}',
+                                         'target': '{0:.2f}'},
+                                        na_rep = 'N/A'))
+
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
 
@@ -626,8 +629,11 @@ if screen == 'Journal':
 
         one, two, three = st.columns([1, 3, 1])
         with two:
-            select_view = st.radio('Select view:', options = ['List', 'Gallery'])
-            if select_view == 'List':
+            select_view = st.radio('Select view:', options = ['List', 'Gallery'], index = 1)
+
+        if select_view == 'List':
+            one, two, three = st.columns([1, 3, 1])
+            with two:
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
                     symbol = journal_full.at[i, 'Symbol']
@@ -635,35 +641,40 @@ if screen == 'Journal':
                     date_open = journal_full.at[i, 'Date Open']
                     date_close = journal_full.at[i, 'Date Close']
 
-                    record = journal_full.loc[journal_full.index == i].drop(columns = ['ATR','Entry','Exit'])
-                    record = record.rename({"EntryFilled":"Entry'", "ExitFilled":"Exit'"}, axis='columns')
+                    record = journal_full.loc[journal_full.index == i].drop(columns = ['ATR', 'Entry', 'Exit'])
+                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'"}, axis = 'columns')
 
-                    if direction == 'Long':
-                        record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Quantity'] + record['Commission'])/ RISK
-                        pnl = round(record.iloc[0]['P&L'], 2)
-                        if pnl > 0:
+                    record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Quantity'] + record[
+                        'Commission']) / RISK
+                    pnl = round(record.iloc[0]['P&L'], 2)
+
+
+                    if np.isnan(pnl):
+                        label = f"{i_int}. {symbol} {direction} - In Progress"
+                    elif pnl > 0:
+                        if direction == 'Long':
                             label = f"{i_int}. {symbol} {direction} + {abs(pnl)} R"
-                        else:
+                        elif direction == 'Short':
                             label = f"{i_int}. {symbol} {direction} - {abs(pnl)} R"
                     else:
-                        record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Quantity'] - record['Commission']) / RISK
-                        pnl = round(record.iloc[0]['P&L'], 2)
-                        if pnl < 0:
-                            label = f"{i_int}. {symbol} {direction} + {abs(pnl)} R"
-                        else:
+                        if direction == 'Long':
                             label = f"{i_int}. {symbol} {direction} - {abs(pnl)} R"
+                        elif direction == 'Short':
+                            label = f"{i_int}. {symbol} {direction} + {abs(pnl)} R"
 
-                    record = record[['Date Open', 'Date Close', 'Symbol', 'Direction', 'Quantity', "Entry'", 'Stop', 'Target', "Exit'", 'P&L', 'Signal']]
+                    record = record[
+                        ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Quantity', "Entry'", 'Stop', 'Target',
+                         "Exit'", 'P&L', 'Signal']]
                     my_expander = st.expander(label = label)
                     with my_expander:
-                        st.table(record.assign(hack='').set_index('hack').style.format({"Entry'": '{0:.2f}',
-                                                      'Quantity': '{0:.2f}',
-                                                      'Stop': '{0:.2f}',
-                                                      'Target': '{0:.2f}',
-                                                      "Exit'": '{0:.2f}',
-                                                      'ATR': '{0:.2f}',
-                                                      'P&L': '{0:.2f} R'},
-                                                     na_rep = 'N/A'))
+                        st.table(record.assign(hack = '').set_index('hack').style.format({"Entry'": '{0:.2f}',
+                                                                                          'Quantity': '{0:.2f}',
+                                                                                          'Stop': '{0:.2f}',
+                                                                                          'Target': '{0:.2f}',
+                                                                                          "Exit'": '{0:.2f}',
+                                                                                          'ATR': '{0:.2f}',
+                                                                                          'P&L': '{0:.2f} R'},
+                                                                                         na_rep = 'N/A'))
 
                         comment = journal_cmt.at[i_int - 1, 'Comment']
                         if comment == None:
@@ -671,7 +682,8 @@ if screen == 'Journal':
                         else:
                             st.write(comment)
 
-                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png', width = 700)
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 width = 700)
 
                         user_input = st.text_input(f"{i_int}. Type comment: ")
                         st.caption('Clear input when done')
@@ -686,20 +698,24 @@ if screen == 'Journal':
                                 pass
                             else:
                                 st.error("Incorrect password")
-            if select_view == 'Gallery':
+
+        if select_view == 'Gallery':
+            one, two, three, four = st.columns([1, 5, 5, 1])
+            with two:
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
-                    symbol = journal_full.at[i, 'Symbol']
-                    st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                             width = 700)
-                # st.table(journal.style.format({'Price': '{0:.2f}',
-                #                                'Fill at': '{0:.2f}',
-                #                                'Stop': '{0:.2f}',
-                #                                'Take Profit': '{0:.2f}',
-                #                                'Quantity': '{0:.2f}',
-                #                                'Commission': '{0:.2f}',
-                #                                'ATR': '{0:.2f}'},
-                #                               na_rep = 'N/A'))
+                    if i_int % 2 ==0:
+                        symbol = journal_full.at[i, 'Symbol']
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 width = 700)
+            with three:
+                for i in reversed(journal_full.index.to_list()):
+                    i_int = int(float(i))
+                    if i_int % 2 != 0:
+                        symbol = journal_full.at[i, 'Symbol']
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 width = 700)
+
     elif password == "":
         pass
     else:
