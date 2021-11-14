@@ -697,7 +697,7 @@ if screen == 'Journal':
                                 st.error("Incorrect password")
 
         if select_view == 'Gallery':
-            one, two, three, four = st.columns([1, 50, 50, 1])
+            one, two, three, four = st.columns([1, 10, 10, 1])
             with two:
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
