@@ -53,38 +53,36 @@ def get_earnings(api_key, horizon, symbol = None):
 
 # ----------DATABASE SETUP--------
 @st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 7200)
-def connectDb(database):
+def connect_db(database):
     return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle = 7200)
 
 
 @st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
-def runQueryCached(connection, query, index_col = None):
+def run_query_cached(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
 
-def runQuery(connection, query, index_col = None):
+def run_query(connection, query, index_col = None):
     return pd.read_sql_query(query, connection, index_col)
 
 
-def runCommand(connection, query):
+def run_command(connection, query):
     connection.execute(query)
 
 
-POSITIONS_DB = connectDb('positions')
-PRICES_DB = connectDb('prices')
-TEMP_DB = connectDb('temp')
-
+POSITIONS_DB = connect_db('positions')
+PRICES_DB = connect_db('prices')
+JOURNAL_DB = connect_db('journal')
 
 # ----------OTHER-----------------
-def isNowInTimePeriod(startTime, endTime, nowTime):
-    if startTime < endTime:
-        return nowTime >= startTime and nowTime <= endTime
+def is_in_time_period(start_time, end_time, now_time):
+    if start_time < end_time:
+        return now_time >= start_time and now_time <= end_time
     else:
         # Over midnight:
-        return nowTime >= startTime or nowTime <= endTime
+        return now_time >= start_time or now_time <= end_time
 
-
-pre_market = isNowInTimePeriod(
+pre_market = is_in_time_period(
     dt.time(13, 00), dt.time(13, 30), dt.datetime.now().time())
 
 ##---------------------------------------------DASHBOARD -------------------------------------------------------------##
@@ -93,7 +91,7 @@ HORIZONTAL_RADIO = "<style>div.row-widget.stRadio > div{flex-direction:row;}</st
 POSITIONS_HEADING = "<h1 style='text-align: center; color: black;'>Current Positions</h1>"
 PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>"
 
-updated = runQuery(POSITIONS_DB, "SELECT Updated FROM updated")
+updated = run_query(POSITIONS_DB, "SELECT Updated FROM updated")
 
 one, two, three, four = st.columns([1, 0.25, 2.75, 1])
 with two:
@@ -122,9 +120,9 @@ else:
 
 # ----------POSITIONS SCREEN------
 if screen == 'Positions':
-    open_positions = runQuery(
+    open_positions = run_query(
         POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
-    closed_orders = runQuery(
+    closed_orders = run_query(
         POSITIONS_DB, "SELECT * FROM closed_orders", 'symbol')
     closed_positions = closed_orders.copy()
 
@@ -232,8 +230,8 @@ if screen == 'Positions':
 # ----------ORDERS SCREEN---------
 if screen == 'Orders':
     # Get data
-    open_orders = runQuery(POSITIONS_DB, "SELECT * FROM open_orders", 'symbol')
-    closed_orders = runQuery(POSITIONS_DB, "SELECT * FROM closed_orders", 'symbol')
+    open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'symbol')
+    closed_orders = run_query(POSITIONS_DB, "SELECT * FROM closed_orders", 'symbol')
     one, two, three = st.columns([1, 3, 1])
     with two:
         # Open orders
@@ -290,13 +288,13 @@ if screen == 'Sectors':
         st.table(sector_trans.T)
 
     # Correlation table
-    spy = runQueryCached(
+    spy = run_query_cached(
         PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
     spy['return%'] = spy['Close'].pct_change(1) * 100
     spy = spy.tail(period)
     spy['var'] = spy['return%'].var()
     for i in range(0, len(sector_list)):
-        sector = runQueryCached(
+        sector = run_query_cached(
             PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
         sector['return%'] = sector['Close'].pct_change(1) * 100
         sector = sector.tail(period)
@@ -323,11 +321,11 @@ if screen == 'Sectors':
 # ----------CALC SCREEN-----------
 if screen == 'PSC':
     # Get data
-    open_positions = runQuery(
+    open_positions = run_query(
         POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
 
     '---'
-    symbol_list = runQueryCached(PRICES_DB, "SELECT symbol FROM symbol_list")
+    symbol_list = run_query_cached(PRICES_DB, "SELECT symbol FROM symbol_list")
     symbol_list = symbol_list['symbol'].to_list()
 
     beta_list = []
@@ -375,18 +373,18 @@ if screen == 'PSC':
         symbol = st.multiselect('Select symbols:', options = symbol_list,
                                 default = ['SPY'] + open_positions.index.values.tolist())
 
-        spy = runQueryCached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+        spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
         spy['return%'] = spy['Close'].pct_change(1) * 100
         spy = spy.tail(period)
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
             if symbol[i] in sector_list:
-                bars = runQueryCached(
+                bars = run_query_cached(
                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
             else:
-                bars = runQueryCached(
+                bars = run_query_cached(
                     PRICES_DB, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
             bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
@@ -445,13 +443,13 @@ if screen == 'PSC':
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
-            runCommand(POSITIONS_DB, add_cmd)
+            run_command(POSITIONS_DB, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
-    watchlist = runQuery(POSITIONS_DB, "SELECT * FROM watchlist", 'symbol')
-    open_positions = runQuery(POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
+    watchlist = run_query(POSITIONS_DB, "SELECT * FROM watchlist", 'symbol')
+    open_positions = run_query(POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
     '---'
     one, two = st.columns([1, 2])
     with one:
@@ -535,7 +533,7 @@ if screen == 'Watchlist':
                     variable.append(earnings)
                     variable.append(size)
                     add_cmd = f"INSERT INTO watchlist VALUES ('{symbol}', '{variable[1]}', {entry}, {stop}, '{target}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
-                    runCommand(POSITIONS_DB, add_cmd)
+                    run_command(POSITIONS_DB, add_cmd)
                     st.success(f"Added '{variable[0].upper()}'")
                 except Exception as e:
                     st.error("Invalid command, use: \n"
@@ -548,7 +546,7 @@ if screen == 'Watchlist':
             variable = user_input[5:len(user_input)].split(',')
             if variable[0].upper() in pullback.index.values.tolist():
                 del_cmd = f"DELETE FROM watchlist WHERE symbol = '{variable[0].upper()}'"
-                runCommand(POSITIONS_DB, del_cmd)
+                run_command(POSITIONS_DB, del_cmd)
                 st.success(f"Deleted '{variable[0].upper()}'")
             elif variable[0].upper() not in pullback.index.values.tolist():
                 st.error(f"Cannot find '{variable[0].upper()}'")
@@ -567,11 +565,11 @@ if screen == 'Watchlist':
             #                 pass
             #         if type(variable[2]) == float:
             #             mod_cmd = f"UPDATE watchlist SET {variable[1]}={variable[2]} WHERE symbol = '{variable[0].upper()}'"
-            #             runCommand(POSITIONS_DB, mod_cmd)
+            #             run_command(POSITIONS_DB, mod_cmd)
             #             st.success(f"Modified '{variable[0].upper()}'")
             #         elif type(variable[2]) == str:
             #             mod_cmd = f"UPDATE watchlist SET {variable[1]}='{variable[2]}' WHERE symbol = '{variable[0].upper()}'"
-            #             runCommand(POSITIONS_DB, mod_cmd)
+            #             run_command(POSITIONS_DB, mod_cmd)
             #             st.success(f"Modified '{variable[0].upper()}'")
             #         else:
             #             st.error("Invalid command, use: \n"
@@ -608,10 +606,10 @@ if screen == 'Watchlist':
 
 # ----------JOURNAL---------------
 if screen == 'Journal':
-    journal = runQuery(TEMP_DB, "SELECT * FROM journal order by ID")
-    journal_full = runQuery(
-        TEMP_DB, "SELECT * FROM journal_full order by ID")
-    journal_cmt = runQuery(TEMP_DB, "SELECT * FROM journal_cmt order by ID")
+    journal = run_query(JOURNAL_DB, "SELECT * FROM journal order by ID")
+    journal_full = run_query(
+        JOURNAL_DB, "SELECT * FROM journal_full order by ID")
+    journal_cmt = run_query(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID")
 
     one, two, three = st.columns([1, 3, 1])
     with two:
@@ -692,7 +690,7 @@ if screen == 'Journal':
                             confirm = st.text_input(f"{i_int}. Enter password", type = "password")
                             if confirm == JOURNAL_PASSWORD:
                                 add_cmd = f"""UPDATE journal_cmt SET Comment = "{user_input}" WHERE ID = {i_int}"""
-                                runCommand(TEMP_DB, add_cmd)
+                                run_command(JOURNAL_DB, add_cmd)
                                 st.success("Comment added")
                             elif confirm == '':
                                 pass
