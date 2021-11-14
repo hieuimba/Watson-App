@@ -680,8 +680,7 @@ if screen == 'Journal':
                         else:
                             st.write(comment)
 
-                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                                 width = 700)
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png')
 
                         user_input = st.text_input(f"{i_int}. Type comment: ")
                         st.caption('Clear input when done')
