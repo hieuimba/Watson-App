@@ -704,15 +704,13 @@ if screen == 'Journal':
                     i_int = int(float(i))
                     if i_int % 2 ==0:
                         symbol = journal_full.at[i, 'Symbol']
-                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                                 width = 500)
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png')
             with three:
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
                     if i_int % 2 != 0:
                         symbol = journal_full.at[i, 'Symbol']
-                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                                 width = 500)
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png')
 
     elif password == "":
         pass
