@@ -590,7 +590,14 @@ if screen == 'Watchlist':
             st.error("Invalid command, try again or type /help")
 
     with two:
-        selections = pullback.index.values.tolist()
+        if watchlist_type == "All":
+            selections = all.index.values.tolist()
+        if watchlist_type == "In Progress":
+            selections = in_progress.index.values.tolist()
+        if watchlist_type == "Setting Up":
+            selections = setting_up.index.values.tolist()
+        if watchlist_type == "Inbox":
+            selections = inbox.index.values.tolist()
         if len(selections) > 0:
             selections = str(selections)[1:-1]
 
