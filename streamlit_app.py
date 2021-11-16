@@ -658,14 +658,14 @@ if screen == 'Journal':
                         label = f"{i_int}. {symbol} {direction} - In Progress"
                     elif pnl > 0:
                         if direction == 'Long':
-                            label = f"{i_int}. {symbol} {direction} + {abs(pnl)} R"
+                            label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
                         elif direction == 'Short':
-                            label = f"{i_int}. {symbol} {direction} - {abs(pnl)} R"
+                            label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
                     else:
                         if direction == 'Long':
-                            label = f"{i_int}. {symbol} {direction} - {abs(pnl)} R"
+                            label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
                         elif direction == 'Short':
-                            label = f"{i_int}. {symbol} {direction} + {abs(pnl)} R"
+                            label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
 
                     record = record[
                         ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Quantity', "Entry'", 'Stop', 'Target',
