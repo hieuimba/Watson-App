@@ -428,15 +428,18 @@ if screen == 'PSC':
             f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-
-        if bars.iloc[-1]['Symbol'] not in sector_list:
-            earnings = get_earnings(
-                API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
-            days_to_earnings = np.busday_count(
-                datetime.today().strftime("%Y-%m-%d"), earnings) + 1
-        else:
-            earnings = 'N/A'
-            days_to_earnings = 'N/A'
+        try:
+            if bars.iloc[-1]['Symbol'] not in sector_list:
+                earnings = get_earnings(
+                    API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
+                days_to_earnings = np.busday_count(
+                    datetime.today().strftime("%Y-%m-%d"), earnings) + 1
+            else:
+                earnings = 'N/A'
+                days_to_earnings = 'N/A'
+        except:
+            earnings = 'Error'
+            days_to_earnings = 'Error'
 
         st.text(
             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
