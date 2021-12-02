@@ -104,10 +104,10 @@ one, two, three = st.columns([1, 3, 1])
 with two:
     if pre_market == True:
         screen = st.radio('', options = [
-            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Orders', 'Journal', 'Sectors'])
+            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders'])
     else:
         screen = st.radio('', options = [
-            'Positions', 'PSC', 'Watchlist', 'Orders', 'Journal', 'Sectors', 'Pre-market'])
+            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders','Pre-market'])
 st.markdown(HORIZONTAL_RADIO, unsafe_allow_html = True)
 OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
 
