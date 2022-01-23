@@ -444,7 +444,7 @@ if screen == 'Watchlist':
         in_progress = all[in_progress_boolean]
         setting_up_boolean = ~pullback.index.isin(in_progress_symbols)
         setting_up = all[setting_up_boolean]
-        inbox = pullback[pullback['entry'].isna()]
+        inbox = pullback[pullback['Entry'].isna()]
 
         watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index = 1)
         if watchlist_type == "All":
