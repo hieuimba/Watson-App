@@ -170,7 +170,7 @@ if screen == 'Positions':
                 f'{len(open_positions)} trades in progress...')
         st.table(open_positions.style.set_table_styles([{'selector' : '',
                             'props' : [('border',
-                                        '10px solid yellow')]}]).format({'Qty': '{0:.2f}',
+                                        '0px solid yellow')]}]).format({'Qty': '{0:.2f}',
                                               'Entry': '{0:.2f}',
                                               'Last': '{0:.2f}',
                                               'Stop': '{0:.2f}',
