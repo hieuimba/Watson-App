@@ -69,12 +69,11 @@ def run_query(connection, query, index_col = None):
 def run_command(connection, query):
     connection.execute(query)
 
-
 POSITIONS_DB = connect_db('positions')
 PRICES_DB = connect_db('prices')
 JOURNAL_DB = connect_db('journal')
 
-# ----------OTHER-----------------
+# ----------PREMARKET-------------
 def is_in_time_period(start_time, end_time, now_time):
     if start_time < end_time:
         return now_time >= start_time and now_time <= end_time
@@ -121,54 +120,31 @@ else:
 # ----------POSITIONS SCREEN------
 if screen == 'Positions':
     open_positions = run_query(
-        POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
+        POSITIONS_DB, "SELECT * FROM open_positions", 'Symbol')
     closed_orders = run_query(
-        POSITIONS_DB, "SELECT * FROM closed_orders", 'symbol')
-    closed_positions = closed_orders.copy()
+        POSITIONS_DB, "SELECT * FROM closed_orders", 'Symbol')
+    closed_positions = run_query(
+        POSITIONS_DB, "SELECT * FROM closed_positions", 'Symbol')
 
     # Calcs
-    unrealized_pnl = open_positions['unrlzd p&l'].sum() / RISK
+    unrealized_pnl = open_positions['Unrlzd P&L'].sum() / RISK
     unrealized_pnl = format(unrealized_pnl, '.2f') + ' R'
 
-    realized_pnl = closed_orders['rlzd p&l'].sum() / RISK
+    realized_pnl = closed_orders['Rlzd P&L'].sum() / RISK
     realized_pnl = format(realized_pnl, '.2f') + ' R'
 
-    total_pnl = (open_positions['unrlzd p&l'].sum() + closed_orders['rlzd p&l'].sum()) / RISK
+    total_pnl = (open_positions['Unrlzd P&L'].sum() + closed_orders['Rlzd P&L'].sum()) / RISK
     total_pnl = format(total_pnl, '.2f') + ' R'
 
-    total_open_risk = open_positions['open risk'].sum() / RISK
+    total_open_risk = open_positions['Open Risk'].sum() / RISK
     total_open_risk = format(total_open_risk, '.2f') + ' R'
 
     # Format open positions table
-    open_positions['rlzd p&l'] /= RISK
-    open_positions['unrlzd p&l'] /= RISK
-    open_positions['open risk'] /= RISK
+    open_positions['Rlzd P&L'] /= RISK
+    open_positions['Unrlzd P&L'] /= RISK
+    open_positions['Open Risk'] /= RISK
 
     # Format closed positions table
-    ls = []
-    for i in range(0, len(closed_positions)):
-        if closed_positions.iloc[i]['action'] == 'BUY' and closed_positions.iloc[i]['rlzd p&l'] != 0:
-            ls.append('short')
-        elif closed_positions.iloc[i]['action'] == 'SELL' and closed_positions.iloc[i]['rlzd p&l'] != 0:
-            ls.append('long')
-        else:
-            ls.append(np.nan)
-    closed_positions['l/s'] = ls
-
-    # filter for filled trades only
-    closed_positions = closed_positions[closed_positions['status'] == 'Filled']
-    closed_positions = closed_positions[(
-                                                closed_positions['l/s'] == 'long') | (
-                                                closed_positions['l/s'] == 'short')]
-    closed_positions = closed_positions.drop(
-        columns = ['action', 'type', 'status', 'time', 'price', 'filled qty', 'comm.'])
-    closed_positions['entry'] = 0
-    closed_positions['stop'] = 0
-    closed_positions['target'] = 0
-    closed_positions['unrlzd p&l'] = 0  # not avaialbe yet
-    closed_positions = closed_positions.rename(columns = {'filled at': 'exit'})
-    closed_positions = closed_positions[[
-        'l/s', 'qty', 'entry', 'exit', 'stop', 'target', 'unrlzd p&l', 'rlzd p&l']]
     closed_positions['rlzd p&l'] /= RISK
     closed_positions['unrlzd p&l'] /= RISK
 
@@ -183,37 +159,37 @@ if screen == 'Positions':
         st.header('Risk:')
         st.text(f'Total open risk: {total_open_risk}')
 
-    # Positions table
+    # Positions tables
     '---'
     one, two, three = st.columns([1, 3, 1])
     with two:
         open_positions = open_positions.sort_values(
-            by = 'unrlzd p&l', ascending = False)
-        open_positions = open_positions.drop(columns = ['qty'])
+            by = 'Unrlzd P&L', ascending = False)
+        open_positions = open_positions.drop(columns = ['Qty'])
         st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
                 f'{len(open_positions)} trades in progress...')
-        st.table(open_positions.style.format({'qty': '{0:.2f}',
-                                              'entry': '{0:.2f}',
-                                              'last': '{0:.2f}',
-                                              'stop': '{0:.2f}',
-                                              'target': '{0:.2f}',
-                                              'unrlzd p&l': '{0:.2f} R',
-                                              'rlzd p&l': '{0:.2f} R',
-                                              'open risk': '{0:.2f} R'},
+        st.table(open_positions.style.format({'Qty': '{0:.2f}',
+                                              'Entry': '{0:.2f}',
+                                              'Last': '{0:.2f}',
+                                              'Stop': '{0:.2f}',
+                                              'Target': '{0:.2f}',
+                                              'Unrlzd p&l': '{0:.2f} R',
+                                              'Rlzd p&l': '{0:.2f} R',
+                                              'Open Risk': '{0:.2f} R'},
                                              na_rep = 'N/A'))
         if len(closed_positions) > 0:
             closed_positions = closed_positions.sort_values(
-                by = 'rlzd p&l', ascending = False)
-            closed_positions = closed_positions.drop(columns = ['qty'])
+                by = 'Rlzd P&L', ascending = False)
+            closed_positions = closed_positions.drop(columns = ['Qty'])
             st.text(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
                     f'{len(closed_positions)} closed trades')
-            st.table(closed_positions.style.format({'qty': '{0:.2f}',
-                                                    'entry': '{0:.2f}',
-                                                    'exit': '{0:.2f}',
-                                                    'stop': '{0:.2f}',
-                                                    'target': '{0:.2f}',
-                                                    'unrlzd p&l': '{0:.2f} R',
-                                                    'rlzd p&l': '{0:.2f} R'},
+            st.table(closed_positions.style.format({'Qty': '{0:.2f}',
+                                                    'Entry': '{0:.2f}',
+                                                    'Exit': '{0:.2f}',
+                                                    'Stop': '{0:.2f}',
+                                                    'Target': '{0:.2f}',
+                                                    'Unrlzd P&L': '{0:.2f} R',
+                                                    'Rlzd P&L': '{0:.2f} R'},
                                                    na_rep = 'N/A'))
     # TradingView Chart
     one, two, three = st.columns([1, 3, 1])
@@ -230,28 +206,28 @@ if screen == 'Positions':
 # ----------ORDERS SCREEN---------
 if screen == 'Orders':
     # Get data
-    open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'symbol')
-    closed_orders = run_query(POSITIONS_DB, "SELECT * FROM closed_orders", 'symbol')
+    open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'Symbol')
+    closed_orders = run_query(POSITIONS_DB, "SELECT * FROM closed_orders", 'Symbol')
     one, two, three = st.columns([1, 3, 1])
     with two:
         # Open orders
         '---'
         st.text(f'{len(open_orders)} open orders')
-        open_orders.drop(columns = ['filled qty'], inplace = True)
-        open_orders = open_orders[['action', 'type', 'qty', 'price', 'status']]
-        st.table(open_orders.style.format({'qty': '{0:.2f}',
-                                           'price': '{0:.2f}'},
+        open_orders.drop(columns = ['Filled Qty'], inplace = True)
+        open_orders = open_orders[['Action', 'Type', 'Qty', 'Price', 'Status']]
+        st.table(open_orders.style.format({'Qty': '{0:.2f}',
+                                           'Price': '{0:.2f}'},
                                           na_rep = 'N/A'))
 
         # Closed orders
         st.text(f'{len(closed_orders)} closed orders')
-        closed_orders.sort_values(by = 'status', inplace = True, ascending = False)
-        closed_orders.drop(columns = ['rlzd p&l', 'filled qty'], inplace = True)
-        closed_orders = closed_orders[['action', 'type', 'qty', 'price', 'filled at', 'status', 'time']]
-        st.table(closed_orders.style.format({'qty': '{0:.2f}',
-                                             'price': '{0:.2f}',
-                                             'filled at': '{0:.2f}',
-                                             'comm.': '{0:.2f}'},
+        closed_orders.sort_values(by = 'Status', inplace = True, ascending = False)
+        closed_orders.drop(columns = ['Rlzd P&L', 'Filled Qty'], inplace = True)
+        closed_orders = closed_orders[['Action', 'Type', 'Qty', 'Price', 'Filled At', 'Status', 'Time']]
+        st.table(closed_orders.style.format({'Qty': '{0:.2f}',
+                                             'Price': '{0:.2f}',
+                                             'Filled At': '{0:.2f}',
+                                             'Comm': '{0:.2f}'},
                                             na_rep = 'N/A'))
 
 # ----------SECTORS SCREEN--------
@@ -283,7 +259,7 @@ if screen == 'Sectors':
         sector_name = ['S&P 500 ETF', 'Energy', 'Industrials', 'Technology', 'Consumer Discretionary',
                        'Financials', 'Materials', 'Consumer Staples', 'Health Care', 'Utilities',
                        'Real Estate', 'Communication Services', 'Russell 2000 ETF', 'Invesco QQQ Trust']
-        sector_trans = pd.DataFrame(data = sector_name, columns = [
+        sector_trans = pd.DataFrame(data= sector_name, columns = [
             'Name'], index = sector_list)
         st.table(sector_trans.T)
 
@@ -322,8 +298,7 @@ if screen == 'Sectors':
 if screen == 'PSC':
     # Get data
     open_positions = run_query(
-        POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
-
+        POSITIONS_DB, "SELECT * FROM open_positions", 'Symbol')
     '---'
     symbol_list = run_query_cached(PRICES_DB, "SELECT symbol FROM symbol_list")
     symbol_list = symbol_list['symbol'].to_list()
@@ -451,8 +426,8 @@ if screen == 'PSC':
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
-    watchlist = run_query(POSITIONS_DB, "SELECT * FROM watchlist", 'symbol')
-    open_positions = run_query(POSITIONS_DB, "SELECT * FROM open_positions", 'symbol')
+    watchlist = run_query(POSITIONS_DB, "SELECT * FROM watchlist", 'Symbol')
+    open_positions = run_query(POSITIONS_DB, "SELECT * FROM open_positions", 'Symbol')
     '---'
     one, two = st.columns([1, 2])
     with one:
