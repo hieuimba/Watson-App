@@ -168,7 +168,8 @@ if screen == 'Positions':
         open_positions = open_positions.drop(columns = ['Qty'])
         st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
                 f'{len(open_positions)} trades in progress...')
-        st.table(open_positions.style.format({'Qty': '{0:.2f}',
+        st.table(open_positions.style.set_properties(**{'border': '1.3px solid green',
+                          'color': 'magenta'}).format({'Qty': '{0:.2f}',
                                               'Entry': '{0:.2f}',
                                               'Last': '{0:.2f}',
                                               'Stop': '{0:.2f}',
