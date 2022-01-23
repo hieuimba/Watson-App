@@ -168,13 +168,13 @@ if screen == 'Positions':
         open_positions = open_positions.drop(columns = ['Qty'])
         st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
                 f'{len(open_positions)} trades in progress...')
-        st.dataframe(open_positions.style.format({'Qty': '{0:.2f}',
+        st.table(open_positions.style.format({'Qty': '{0:.2f}',
                                               'Entry': '{0:.2f}',
                                               'Last': '{0:.2f}',
                                               'Stop': '{0:.2f}',
                                               'Target': '{0:.2f}',
-                                              'Unrlzd p&l': '{0:.2f} R',
-                                              'Rlzd p&l': '{0:.2f} R',
+                                              'Unrlzd P&L': '{0:.2f} R',
+                                              'Rlzd P&L': '{0:.2f} R',
                                               'Open Risk': '{0:.2f} R'},
                                              na_rep = 'N/A'))
         if len(closed_positions) > 0:
