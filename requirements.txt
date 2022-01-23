@@ -3,4 +3,4 @@ sqlalchemy
 pandas
 ta
 matplotlib
-streamlit==0.88.0
+streamlit
