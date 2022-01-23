@@ -145,8 +145,8 @@ if screen == 'Positions':
     open_positions['Open Risk'] /= RISK
 
     # Format closed positions table
-    closed_positions['rlzd p&l'] /= RISK
-    closed_positions['unrlzd p&l'] /= RISK
+    closed_positions['Rlzd P&L'] /= RISK
+    closed_positions['Unrlzd P&L'] /= RISK
 
     # Positions summary
     '---'
