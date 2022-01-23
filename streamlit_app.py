@@ -433,10 +433,10 @@ if screen == 'Watchlist':
     with one:
         in_progress_symbols = open_positions.index.to_list()
 
-        pullback = watchlist[watchlist['setup'] ==
-                             'pullback'].drop(columns = ['setup', 'qty'])
+        pullback = watchlist[watchlist['Setup'] ==
+                             'pullback'].drop(columns = ['Setup', 'Qty'])
         pullback.replace(0, np.nan, inplace = True)
-        pullback.sort_values(by = ['l/s', 'symbol'],
+        pullback.sort_values(by = ['L/S', 'Symbol'],
                              inplace = True, ascending = [True, True])
 
         all = pullback
@@ -448,29 +448,29 @@ if screen == 'Watchlist':
 
         watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index = 1)
         if watchlist_type == "All":
-            st.table(all.style.format({'qty': '{0:.2f}',
-                                       'entry': '{0:.2f}',
-                                       'stop': '{0:.2f}',
-                                       'target': '{0:.2f}'},
+            st.table(all.style.format({'Qty': '{0:.2f}',
+                                       'Entry': '{0:.2f}',
+                                       'Stop': '{0:.2f}',
+                                       'Target': '{0:.2f}'},
                                       na_rep = 'N/A'))
         if watchlist_type == "In Progress":
-            st.table(in_progress.style.format({'qty': '{0:.2f}',
-                                               'entry': '{0:.2f}',
-                                               'stop': '{0:.2f}',
-                                               'target': '{0:.2f}'},
+            st.table(in_progress.style.format({'Qty': '{0:.2f}',
+                                               'Entry': '{0:.2f}',
+                                               'Stop': '{0:.2f}',
+                                               'Target': '{0:.2f}'},
                                               na_rep = 'N/A'))
         if watchlist_type == "Setting Up":
             setting_up = setting_up[setting_up['entry'].notna()]
-            st.table(setting_up.style.format({'qty': '{0:.2f}',
-                                              'entry': '{0:.2f}',
-                                              'stop': '{0:.2f}',
-                                              'target': '{0:.2f}'},
+            st.table(setting_up.style.format({'Qty': '{0:.2f}',
+                                              'Entry': '{0:.2f}',
+                                              'Stop': '{0:.2f}',
+                                              'Target': '{0:.2f}'},
                                              na_rep = 'N/A'))
         if watchlist_type == "Inbox":
-            st.table(inbox.style.format({'qty': '{0:.2f}',
-                                         'entry': '{0:.2f}',
-                                         'stop': '{0:.2f}',
-                                         'target': '{0:.2f}'},
+            st.table(inbox.style.format({'Qty': '{0:.2f}',
+                                         'Entry': '{0:.2f}',
+                                         'Stop': '{0:.2f}',
+                                         'Target': '{0:.2f}'},
                                         na_rep = 'N/A'))
 
         user_input = st.text_input("Add, Modify, Delete")
