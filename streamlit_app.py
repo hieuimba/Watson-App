@@ -460,7 +460,7 @@ if screen == 'Watchlist':
                                                'Target': '{0:.2f}'},
                                               na_rep = 'N/A'))
         if watchlist_type == "Setting Up":
-            setting_up = setting_up[setting_up['entry'].notna()]
+            setting_up = setting_up[setting_up['Entry'].notna()]
             st.table(setting_up.style.format({'Qty': '{0:.2f}',
                                               'Entry': '{0:.2f}',
                                               'Stop': '{0:.2f}',
