@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import requests
 import datetime as dt
+pd.options.html.border = 0
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 # ----------SECRETS---------------
 RISK = st.secrets['risk']
