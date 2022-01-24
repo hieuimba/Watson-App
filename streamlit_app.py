@@ -629,8 +629,8 @@ if screen == 'Journal':
                     record = journal_full.loc[journal_full.index == i].drop(columns = ['Entry', 'Exit'])
                     record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'"}, axis = 'columns')
 
-                    record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Quantity'] + record[
-                        'Commission']) / RISK
+                    record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Qty'] + record[
+                        'Comm']) / RISK
                     pnl = round(record.iloc[0]['P&L'], 2)
 
 
@@ -648,16 +648,15 @@ if screen == 'Journal':
                             label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
 
                     record = record[
-                        ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Quantity', "Entry'", 'Stop', 'Target',
+                        ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Qty', "Entry'", 'Stop', 'Target',
                          "Exit'", 'P&L', 'Signal']]
                     my_expander = st.expander(label = label)
                     with my_expander:
                         st.table(record.assign(hack = '').set_index('hack').style.format({"Entry'": '{0:.2f}',
-                                                                                          'Quantity': '{0:.2f}',
+                                                                                          'Qty': '{0:.2f}',
                                                                                           'Stop': '{0:.2f}',
                                                                                           'Target': '{0:.2f}',
                                                                                           "Exit'": '{0:.2f}',
-                                                                                          'ATR': '{0:.2f}',
                                                                                           'P&L': '{0:.2f} R'},
                                                                                          na_rep = 'N/A'))
 
