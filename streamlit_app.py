@@ -646,7 +646,7 @@ if screen == 'Journal':
                             label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
                         elif direction == 'Short':
                             label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
-
+                    st.table(record)
                     record = record[
                         ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Qty', "Entry'", 'Stop', 'Target',
                          "Exit'", 'P&L', 'Signal']]
