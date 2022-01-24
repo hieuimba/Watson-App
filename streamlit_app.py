@@ -646,9 +646,9 @@ if screen == 'Journal':
                             label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
                         elif direction == 'Short':
                             label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
-                    st.table(record)
+                    #st.table(record)
                     record = record[
-                        ['Date Open', 'Date Close', 'Symbol', 'Direction', 'Qty', "Entry'", 'Stop', 'Target',
+                        ['Date Open', 'Date Close', 'Symbol', 'L/S', 'Qty', "Entry'", 'Stop', 'Target',
                          "Exit'", 'P&L', 'Signal']]
                     my_expander = st.expander(label = label)
                     with my_expander:
