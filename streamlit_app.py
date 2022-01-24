@@ -622,11 +622,11 @@ if screen == 'Journal':
                 for i in reversed(journal_full.index.to_list()):
                     i_int = int(float(i))
                     symbol = journal_full.at[i, 'Symbol']
-                    direction = journal_full.at[i, 'Direction']
+                    direction = journal_full.at[i, 'L/S']
                     date_open = journal_full.at[i, 'Date Open']
                     date_close = journal_full.at[i, 'Date Close']
 
-                    record = journal_full.loc[journal_full.index == i].drop(columns = ['ATR', 'Entry', 'Exit'])
+                    record = journal_full.loc[journal_full.index == i].drop(columns = ['Entry', 'Exit'])
                     record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'"}, axis = 'columns')
 
                     record['P&L'] = ((record["Exit'"] - record["Entry'"]) * record['Quantity'] + record[
