@@ -215,19 +215,17 @@ if screen == 'Orders':
         # Open orders
         '---'
         st.text(f'{len(open_orders)} open orders')
-        open_orders.drop(columns = ['Filled Qty'], inplace = True)
-        open_orders = open_orders[['Action', 'Type', 'Qty', 'Price', 'Status']]
-        st.table(open_orders.style.format({'Qty': '{0:.2f}',
-                                           'Price': '{0:.2f}'},
+        open_orders.drop(columns = ['Filled Qty', 'Qty'], inplace = True)
+        open_orders = open_orders[['Action', 'Type', 'Price', 'Status']]
+        st.table(open_orders.style.format({'Price': '{0:.2f}'},
                                           na_rep = 'N/A'))
 
         # Closed orders
         st.text(f'{len(closed_orders)} closed orders')
         closed_orders.sort_values(by = 'Status', inplace = True, ascending = False)
-        closed_orders.drop(columns = ['Rlzd P&L', 'Filled Qty'], inplace = True)
-        closed_orders = closed_orders[['Action', 'Type', 'Qty', 'Price', 'Filled At', 'Status', 'Time']]
-        st.table(closed_orders.style.format({'Qty': '{0:.2f}',
-                                             'Price': '{0:.2f}',
+        closed_orders.drop(columns = ['Rlzd P&L', 'Filled Qty', 'Qty'], inplace = True)
+        closed_orders = closed_orders[['Action', 'Type', 'Price', 'Filled At', 'Status', 'Time']]
+        st.table(closed_orders.style.format({'Price': '{0:.2f}',
                                              'Filled At': '{0:.2f}',
                                              'Comm': '{0:.2f}'},
                                             na_rep = 'N/A'))
