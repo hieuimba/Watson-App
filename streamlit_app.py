@@ -606,4 +606,4 @@ if select_view == 'List':
 
     if password == JOURNAL_PASSWORD:
         text_input_container.empty()
-	st.text("good")
+        st.text("good")
