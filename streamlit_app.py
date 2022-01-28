@@ -606,4 +606,4 @@ if screen == 'Journal':
 
 		if password == JOURNAL_PASSWORD:
 			text_input_container.empty()
-            st.text("unlocked")
+            		st.text("unlocked")
