@@ -615,10 +615,10 @@ if screen == 'Journal':
                     direction = journal_full.at[i, 'L/S']
                     date_open = journal_full.at[i, 'Date Open']
                     date_close = journal_full.at[i, 'Date Close']
-                    pnl = journal_full.at[i, 'Pnl']
+                    pnl = journal_full.at[i, 'PnL']
 
                     record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
-                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'"}, axis='columns')
+                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P&L"}, axis='columns')
 
                     if np.isnan(pnl):
                         label = f"{i_int}. {symbol} {direction} - In Progress"
