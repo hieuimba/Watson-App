@@ -615,7 +615,8 @@ if screen == 'Journal':
                     direction = journal_full.at[i, 'L/S']
                     date_open = journal_full.at[i, 'Date Open']
                     date_close = journal_full.at[i, 'Date Close']
-                    pnl = round(journal_full.at[i, 'PnL'] / RISK, 2)
+                    journal_full.at[i, 'PnL'] = round(journal_full.at[i, 'PnL'] / RISK, 2)
+                    pnl = journal_full.at[i, 'PnL']
 
                     record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
                     record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P&L"}, axis='columns')
