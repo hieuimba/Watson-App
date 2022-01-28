@@ -591,19 +591,19 @@ if screen == 'Watchlist':
 
 # ----------JOURNAL---------------
 if screen == 'Journal':
-	journal_full = run_query(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
-	journal_cmt = run_query(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID")
-	journal_full['ID'] = journal_full['ID'].astype(str)
-	journal_full = journal_full.set_index('ID')
+    journal_full = run_query(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
+    journal_cmt = run_query(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID")
+    journal_full['ID'] = journal_full['ID'].astype(str)
+    journal_full = journal_full.set_index('ID')
 
-	one, two, three = st.columns([1, 3, 1])
-	with two:
-		select_view = st.radio('Select view:', options=['Summary','List', 'Gallery'], index=1)
-		
-	if select_view == 'List':
-		text_input_container = st.empty()
-		password = text_input_container.text_input("Enter password", type="password")
+    one, two, three = st.columns([1, 3, 1])
+    with two:
+        select_view = st.radio('Select view:', options=['Summary', 'List', 'Gallery'], index=1)
 
-		if password == JOURNAL_PASSWORD:
-			text_input_container.empty()
-            		st.text("unlocked")
+if select_view == 'List':
+    text_input_container = st.empty()
+    password = text_input_container.text_input("Enter password", type="password")
+
+    if password == JOURNAL_PASSWORD:
+        text_input_container.empty()
+	st.text("good")
