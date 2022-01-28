@@ -600,10 +600,102 @@ if screen == 'Journal':
     with two:
         select_view = st.radio('Select view:', options=['Summary', 'List', 'Gallery'], index=1)
 
-if select_view == 'List':
-    text_input_container = st.empty()
-    password = text_input_container.text_input("Enter password", type="password")
+    if select_view == 'List':
+        one, two, three = st.columns([1, 3, 1])
+        with two:
+            text_input_container = st.empty()
+            password = text_input_container.text_input("Enter password", type="password")
 
-    if password == JOURNAL_PASSWORD:
-        text_input_container.empty()
-        st.text("good")
+            if password == JOURNAL_PASSWORD:
+                text_input_container.empty()
+
+                for i in reversed(journal_full.index.to_list()):
+                    i_int = int(float(i))
+                    symbol = journal_full.at[i, 'Symbol']
+                    direction = journal_full.at[i, 'L/S']
+                    date_open = journal_full.at[i, 'Date Open']
+                    date_close = journal_full.at[i, 'Date Close']
+                    pnl = journal_full.at[i, 'Pnl']
+
+                    record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
+                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'"}, axis='columns')
+
+                    if np.isnan(pnl):
+                        label = f"{i_int}. {symbol} {direction} - In Progress"
+                    elif pnl > 0:
+                        label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
+                    else:
+                        label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
+
+                    record = record[
+                        ['Date Open', 'Date Close', 'Symbol', 'L/S', 'Qty', "Entry'", 'Stop', 'Target',
+                         "Exit'", 'P&L', 'Signal']]
+                    record = record.assign(hack='').set_index('hack')
+                    my_expander = st.expander(label=label)
+                    with my_expander:
+                        st.table(record.style.format({"Entry'": '{0:.2f}',
+                                                      'Qty': '{0:.2f}',
+                                                      'Stop': '{0:.2f}',
+                                                      'Target': '{0:.2f}',
+                                                      "Exit'": '{0:.2f}',
+                                                      'P&L': '{0:.2f} R'},
+                                                      na_rep='N/A'))
+
+                        comment = journal_cmt.at[i_int - 1, 'Comment']
+                        if comment == None:
+                            st.write("")
+                        else:
+                            st.write(comment)
+
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 use_column_width='auto')
+
+                        user_input = st.text_input(f"{i_int}. Type comment: ")
+                        st.caption('Clear input when done')
+
+                        if user_input != '':
+                            confirm = st.text_input(f"{i_int}. Enter password", type="password")
+                            if confirm == JOURNAL_PASSWORD:
+                                add_cmd = f"""UPDATE journal_cmt SET Comment = "{user_input}" WHERE ID = {i_int}"""
+                                run_command(JOURNAL_DB, add_cmd)
+                                st.success("Comment added")
+                            elif confirm == '':
+                                pass
+                            else:
+                                st.error("Incorrect password")
+
+            elif password == "":
+                pass
+            else:
+                st.error("Incorrect password")
+
+    if select_view == 'Gallery':
+        one, two, three = st.columns([1, 3, 1])
+        with two:
+            text_input_container = st.empty()
+            password = text_input_container.text_input("Enter password", type="password")
+
+            if password == JOURNAL_PASSWORD:
+                text_input_container.empty()
+
+                one, two, three, four = st.columns([1, 5, 5, 1])
+                with two:
+                    for i in reversed(journal_full.index.to_list()):
+                        i_int = int(float(i))
+                        if i_int % 2 == 0:
+                            symbol = journal_full.at[i, 'Symbol']
+                            st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                     use_column_width='auto')
+                with three:
+                    for i in reversed(journal_full.index.to_list()):
+                        i_int = int(float(i))
+                        if i_int % 2 != 0:
+                            symbol = journal_full.at[i, 'Symbol']
+                            st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                     use_column_width='auto')
+                        
+            elif password == "":
+                pass
+            else:
+                st.error("Incorrect password")
+
