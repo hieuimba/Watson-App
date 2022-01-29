@@ -149,7 +149,10 @@ if screen == 'Positions':
     closed_positions['Unrlzd P&L'] /= RISK
 
     # Positions summary
-    '---'
+
+    one, two, three = st.columns([4, 12, 4])
+    with two:
+        '---'
     one, two, three, four = st.columns([4, 9, 3, 4])
     with two:
         st.header(f'Current P&L: {total_pnl}')
@@ -160,9 +163,10 @@ if screen == 'Positions':
         st.text(f'Total open risk: {total_open_risk}')
 
     # Positions tables
-    '---'
+
     one, two, three = st.columns([1, 3, 1])
     with two:
+        '---'
         open_positions = open_positions.sort_values(
             by = 'Unrlzd P&L', ascending = False)
         open_positions = open_positions.drop(columns = ['Qty'])
@@ -595,10 +599,172 @@ if screen == 'Journal':
     journal_cmt = run_query(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID")
     journal_full['ID'] = journal_full['ID'].astype(str)
     journal_full = journal_full.set_index('ID')
+    journal_full['PnL'] = round(journal_full['PnL'] / RISK, 2)
 
-    one, two, three = st.columns([1, 3, 1])
+    one, two, three = st.columns([1, 6, 1])
     with two:
-        select_view = st.radio('Select view:', options=['Summary', 'List', 'Gallery'], index=1)
+        '---'
+    one, two, three, four = st.columns([1, 2, 4, 1])
+    with two:
+        select_view = st.radio('Select view:', options=['Summary','Table', 'List', 'Gallery'], index=0)
+    with three:
+        last_n_trade = st.radio('Last:', ('50 trades', '25 trades', '10 trades'), index=0)
+        if last_n_trade == '50 trades':
+            n = 50
+        if last_n_trade == '25 trades':
+            n = 25
+        if last_n_trade == '10 trades':
+            n = 10
+
+    if select_view == 'Summary':
+        journal_full = journal_full[::-1].drop(columns=['Signal'])
+        journal_full = journal_full.dropna()
+        journal_full = journal_full.head(n)
+        journal_full = journal_full.reset_index()
+
+        one, two, three, four = st.columns([1, 2, 4, 1])
+        with two:
+            last_n_pnl = journal_full['PnL'].sum()
+            last_n_pnl = format(last_n_pnl, '.2f') + ' R'
+            st.subheader(f'Cummulative P&L: {last_n_pnl}')
+
+        one, two, three = st.columns([1, 6, 1])
+        with two:
+            bar_chart = alt.Chart(journal_full).mark_bar(size = 5).encode(
+                x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                y = alt.Y('PnL', axis=alt.Axis(title='P&L')),
+                color=alt.condition(
+                    alt.datum.PnL > 0,  # If the year is 1810 this test returns True,
+                    alt.value('green'),  # which sets the bar orange.
+                    alt.value('red')  # And if it's not true it sets the bar steelblue.
+                )
+            )
+            st.altair_chart(bar_chart, use_container_width=True)
+
+            journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
+            line_chart = alt.Chart(journal_full).mark_line(size = 3).encode(
+                x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                y = alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
+                color = alt.value("#FFAA00")
+            )
+            st.altair_chart(line_chart, use_container_width=True)
+            st.subheader('Statistics')
+
+        one, two, three, four, five = st.columns([1, 2, 2, 2, 1])
+        with two:
+            win_count = journal_full['PnL'][journal_full['PnL'] > 0].count()
+            loss_count = journal_full['PnL'][journal_full['PnL'] <= 0].count()
+            win_percentage = round(win_count/(win_count + loss_count) * 100, 2)
+            win_rate = win_count/(win_count + loss_count)
+
+            total_win = journal_full['PnL'][journal_full['PnL'] > 0].sum()
+            total_loss = journal_full['PnL'][journal_full['PnL'] <= 0].sum()
+
+            avg_win = round(total_win/win_count, 2)
+            avg_loss = round(total_loss/loss_count, 2)
+
+            expectancy = round(win_rate*avg_win + (1-win_rate)*avg_loss, 2)
+
+            st.text(f'Average gain/loss: {expectancy} R')
+            st.text(f'Win rate: {win_percentage} %')
+            st.text(f'Average winning trade: {avg_win} R')
+            st.text(f'Average losing trade: {avg_loss} R')
+            st.text(f'Number of winning trades: {win_count}')
+            st.text(f'Number of losing trades: {loss_count}')
+        with three:
+            win_max = journal_full['PnL'].max()
+            loss_max = journal_full['PnL'].min()
+            profit_factor = round(total_win/total_loss, 2)
+            std_dev = round(journal_full['PnL'].std(), 2)
+
+            journal_full['Win'] = journal_full['PnL'] > 0
+            journal_full['start_of_streak'] = journal_full.Win.ne(journal_full['Win'].shift())
+            journal_full['streak_id'] = journal_full['start_of_streak'].cumsum()
+            journal_full['streak_counter'] = journal_full.groupby('streak_id').cumcount() + 1
+
+            win_filter = journal_full[journal_full['Win'] == True]
+            loss_filter = journal_full[journal_full['Win'] == False]
+            max_con_win = win_filter['streak_counter'].max()
+            max_con_loss = loss_filter['streak_counter'].max()
+
+            st.text(f'Profit factor: {profit_factor}')
+            st.text(f'Trade P&L standard deviation: {std_dev} R')
+            st.text(f'Largest gain: {win_max} R')
+            st.text(f'Largest loss: {loss_max} R')
+
+            st.text(f'Max consecutive wins: {max_con_win}')
+            st.text(f'Max consecutive loss: {max_con_loss}')
+        with four:
+            total_commission = round(journal_full['Comm'].sum() / RISK, 2)
+
+            conditions = [(journal_full['L/S'] == 'Long'), (journal_full['L/S'] == 'Short')]
+            slippage_long = (journal_full['Entry'] - journal_full['EntryFilled'] + journal_full['ExitFilled'] - journal_full['Exit']) * journal_full['Qty']
+            slippage_short = (journal_full['EntryFilled'] - journal_full['Entry'] + journal_full['Exit'] - journal_full['ExitFilled']) * journal_full['Qty']
+            values = [slippage_long, slippage_short]
+            journal_full['Slippage'] = np.select(conditions, values)
+            total_slippage = round(journal_full['Slippage'].sum()/ RISK, 2)
+
+            st.text(f'Average Holding Time: N/A')
+            st.text(f'Total commission: {total_commission} R')
+            st.text(f'Total slippage: {total_slippage} R')
+
+    if select_view == 'Table':
+        journal_full = journal_full[::-1].drop(columns=['Signal'])
+        one, two, three = st.columns([1, 3, 1])
+        with two:
+            text_input_container = st.empty()
+            password = text_input_container.text_input("Enter password", type="password")
+
+        if password == JOURNAL_PASSWORD:
+            text_input_container.empty()
+
+            total_pnl = journal_full['PnL'].sum()
+            total_pnl = format(total_pnl, '.2f') + ' R'
+
+            def get_pnl_between_two_dates(start_date, end_date):
+                after_start_date = journal_full['Date Close'] >= start_date
+                before_end_date = journal_full['Date Close'] <= end_date
+                between_two_dates = after_start_date & before_end_date
+                filter = journal_full.loc[between_two_dates]
+                pnl = filter['PnL'].sum()
+                return format(pnl, '.2f') + ' R'
+
+            end_date = pd.to_datetime(datetime.today())
+            start_date_mtd = pd.to_datetime(datetime.today().replace(day=1))
+            start_date_ytd = pd.to_datetime(datetime.today().replace(month=1, day=1))
+            start_date_3m = pd.to_datetime(datetime.today()-timedelta(90))
+            start_date_6m = pd.to_datetime(datetime.today()-timedelta(180))
+            start_date_9m = pd.to_datetime(datetime.today()-timedelta(270))
+
+            month_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
+            year_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
+            three_month_pnl = get_pnl_between_two_dates(start_date_3m, end_date)
+            six_month_pnl = get_pnl_between_two_dates(start_date_6m, end_date)
+            nine_month_pnl = get_pnl_between_two_dates(start_date_9m, end_date)
+
+            one, two, three, four = st.columns([1, 1.5, 4.5, 1])
+            with two:
+                st.subheader(f'Month-to-Date: {month_to_date_pnl}')
+                st.text(f'Year-to-Date: {year_to_date_pnl}')
+                st.text(f'Total: {total_pnl}')
+            with three:
+                st.subheader(f'3 Month: {three_month_pnl}')
+                st.text(f'6 Month: {six_month_pnl}')
+                st.text(f'9 Month: {nine_month_pnl}')
+            one, two, three = st.columns([1, 6, 1])
+            with two:
+                journal_full = journal_full.style.format({'Entry': '{0:.2f}',
+                                                         'EntryFilled': '{0:.2f}',
+                                                         'Qty': '{0:.2f}',
+                                                         'Stop': '{0:.2f}',
+                                                         'Target': '{0:.2f}',
+                                                         'Exit': '{0:.2f}',
+                                                         'ExitFilled': '{0:.2f}',
+                                                         'Comm': '{0:.2f}',
+                                                         'PnL': '{0:.2f} R'},
+                                                        na_rep='N/A')
+                st.dataframe(journal_full, height=500)
+
 
     if select_view == 'List':
         one, two, three = st.columns([1, 3, 1])
@@ -615,7 +781,6 @@ if screen == 'Journal':
                     direction = journal_full.at[i, 'L/S']
                     date_open = journal_full.at[i, 'Date Open']
                     date_close = journal_full.at[i, 'Date Close']
-                    journal_full.at[i, 'PnL'] = round(journal_full.at[i, 'PnL'] / RISK, 2)
                     pnl = journal_full.at[i, 'PnL']
 
                     record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
@@ -676,27 +841,26 @@ if screen == 'Journal':
             text_input_container = st.empty()
             password = text_input_container.text_input("Enter password", type="password")
 
-            if password == JOURNAL_PASSWORD:
-                text_input_container.empty()
+        if password == JOURNAL_PASSWORD:
+            text_input_container.empty()
 
-                one, two, three, four = st.columns([1, 5, 5, 1])
-                with two:
-                    for i in reversed(journal_full.index.to_list()):
-                        i_int = int(float(i))
-                        if i_int % 2 == 0:
-                            symbol = journal_full.at[i, 'Symbol']
-                            st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                                     use_column_width='auto')
-                with three:
-                    for i in reversed(journal_full.index.to_list()):
-                        i_int = int(float(i))
-                        if i_int % 2 != 0:
-                            symbol = journal_full.at[i, 'Symbol']
-                            st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
-                                     use_column_width='auto')
-                        
-            elif password == "":
-                pass
-            else:
-                st.error("Incorrect password")
+            one, two, three, four = st.columns([1, 5, 5, 1])
+            with two:
+                for i in reversed(journal_full.index.to_list()):
+                    i_int = int(float(i))
+                    if i_int % 2 == 0:
+                        symbol = journal_full.at[i, 'Symbol']
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 use_column_width='auto')
+            with three:
+                for i in reversed(journal_full.index.to_list()):
+                    i_int = int(float(i))
+                    if i_int % 2 != 0:
+                        symbol = journal_full.at[i, 'Symbol']
+                        st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
+                                 use_column_width='auto')
 
+        elif password == "":
+            pass
+        else:
+            st.error("Incorrect password")
