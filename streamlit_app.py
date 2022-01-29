@@ -31,7 +31,6 @@ JOURNAL_PASSWORD = st.secrets['journal_password']
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
 
 # ----------LAYOUT SETUP----------
-today = (datetime.today() - timedelta(hours = 5)).strftime('%Y-%m-%d')
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
 HIDE_SETTINGS = "<style>header {visibility: hidden;}</style>"
 page_icon = Image.open(FAVICON_PATH)
@@ -39,7 +38,6 @@ page_icon = Image.open(FAVICON_PATH)
 st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')  # page_icon
 st.markdown(HIDE_FOOTER, unsafe_allow_html = True)
 st.markdown(HIDE_SETTINGS, unsafe_allow_html = True)
-
 
 # ----------ALPHA VANTAGE---------
 def get_earnings(api_key, horizon, symbol = None):
@@ -236,11 +234,10 @@ if screen == 'Orders':
                                             na_rep = 'N/A'))
 
 # ----------SECTORS SCREEN--------
-sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF',
-               'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
 if screen == 'Sectors':
-    # Select period
     '---'
+    sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF',
+                   'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
     beta_list = []
     matrix = pd.DataFrame()
     corr_matrix = pd.DataFrame()
@@ -305,8 +302,10 @@ if screen == 'PSC':
     open_positions = run_query(
         POSITIONS_DB, "SELECT * FROM open_positions", 'Symbol')
     '---'
-    symbol_list = run_query_cached(PRICES_DB, "SELECT symbol FROM symbol_list")
-    symbol_list = symbol_list['symbol'].to_list()
+    symbol_list = run_query_cached(PRICES_DB, "SELECT * FROM symbol_list")
+    etf_list = symbol_list[symbol_list['Sec_Type'] == 'ETF']
+    symbol_list = symbol_list['Symbol'].to_list()
+    etf_list = etf_list['Symbol'].to_list()
 
     beta_list = []
     matrix = pd.DataFrame()
@@ -359,7 +358,7 @@ if screen == 'PSC':
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
-            if symbol[i] in sector_list:
+            if symbol[i] in etf_list:
                 bars = run_query_cached(
                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
@@ -409,7 +408,7 @@ if screen == 'PSC':
         st.text(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         try:
-            if bars.iloc[-1]['Symbol'] not in sector_list:
+            if bars.iloc[-1]['Symbol'] not in etf_list:
                 earnings = get_earnings(
                     API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
                 days_to_earnings = np.busday_count(
@@ -593,7 +592,7 @@ if screen == 'Watchlist':
             components.html(source_code, height = 800)
         else:
             st.text('Watchlist is empty')
-            
+
 # ----------JOURNAL---------------
 if screen == 'Journal':
     journal_full = run_query(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
