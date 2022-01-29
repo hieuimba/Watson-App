@@ -593,7 +593,7 @@ if screen == 'Watchlist':
             components.html(source_code, height = 800)
         else:
             st.text('Watchlist is empty')
-
+            
 # ----------JOURNAL---------------
 if screen == 'Journal':
     journal_full = run_query(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
@@ -635,11 +635,11 @@ if screen == 'Journal':
                 x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
                 y = alt.Y('PnL', axis=alt.Axis(title='P&L')),
                 color=alt.condition(
-                    alt.datum.PnL > 0,  # If the year is 1810 this test returns True,
-                    alt.value('green'),  # which sets the bar orange.
-                    alt.value('red')  # And if it's not true it sets the bar steelblue.
+                    alt.datum.PnL > 0,
+                    alt.value('green'),
+                    alt.value('red')
                 )
-            )
+            ).configure_view(strokeWidth=0).configure_axis(grid=False)
             st.altair_chart(bar_chart, use_container_width=True)
 
             journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
@@ -647,7 +647,7 @@ if screen == 'Journal':
                 x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
                 y = alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
                 color = alt.value("#FFAA00")
-            )
+            ).configure_view(strokeWidth=0).configure_axis(grid=False)
             st.altair_chart(line_chart, use_container_width=True)
             st.subheader('Statistics')
 
@@ -865,3 +865,4 @@ if screen == 'Journal':
             pass
         else:
             st.error("Incorrect password")
+
