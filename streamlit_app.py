@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 from ta import volatility
+import altair as alt
 
 from PIL import Image
 from datetime import datetime, timedelta
