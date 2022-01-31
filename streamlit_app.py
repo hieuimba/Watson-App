@@ -878,7 +878,7 @@ if screen == 'Journal':
 
 if screen == 'Reports':
     mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
-
+    '--'
     one,two,three,four = st.columns([1,3,3,1])
     bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
         x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
