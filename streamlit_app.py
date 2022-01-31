@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import requests
 import datetime as dt
+
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 # ----------SECRETS---------------
 RISK = st.secrets['risk']
@@ -71,6 +72,7 @@ def run_command(connection, query):
 POSITIONS_DB = connect_db('positions')
 PRICES_DB = connect_db('prices')
 JOURNAL_DB = connect_db('journal')
+REPORT_DB = connect_db('report')
 
 # ----------PREMARKET-------------
 def is_in_time_period(start_time, end_time, now_time):
@@ -105,7 +107,7 @@ with two:
             'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders'])
     else:
         screen = st.radio('', options = [
-            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders','Pre-market'])
+            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders','Reports'])
 st.markdown(HORIZONTAL_RADIO, unsafe_allow_html = True)
 OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
 
@@ -607,7 +609,9 @@ if screen == 'Journal':
     with two:
         select_view = st.radio('Select view:', options=['Summary','Table', 'List', 'Gallery'], index=0)
     with three:
-        last_n_trade = st.radio('Last:', ('50 trades', '25 trades', '10 trades'), index=0)
+        last_n_trade = st.radio('Last:', ('All','50 trades', '25 trades', '10 trades'), index=1)
+        if last_n_trade == 'All':
+            n = len(journal_full)
         if last_n_trade == '50 trades':
             n = 50
         if last_n_trade == '25 trades':
@@ -616,96 +620,104 @@ if screen == 'Journal':
             n = 10
 
     if select_view == 'Summary':
-        journal_full = journal_full[::-1].drop(columns=['Signal'])
-        journal_full = journal_full.dropna()
-        journal_full = journal_full.head(n)
-        journal_full = journal_full.reset_index()
-
-        one, two, three, four = st.columns([1, 2, 4, 1])
+        one, two, three = st.columns([1, 3, 1])
         with two:
-            last_n_pnl = journal_full['PnL'].sum()
-            last_n_pnl = format(last_n_pnl, '.2f') + ' R'
-            st.subheader(f'Cummulative P&L: {last_n_pnl}')
+            text_input_container = st.empty()
+            password = text_input_container.text_input("Enter password", type="password")
 
-        one, two, three = st.columns([1, 6, 1])
-        with two:
-            bar_chart = alt.Chart(journal_full).mark_bar(size = 5).encode(
-                x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
-                y = alt.Y('PnL', axis=alt.Axis(title='P&L')),
-                color=alt.condition(
-                    alt.datum.PnL > 0,
-                    alt.value('green'),
-                    alt.value('red')
-                )
-            ).configure_view(strokeWidth=0).configure_axis(grid=False)
-            st.altair_chart(bar_chart, use_container_width=True)
+        if password == JOURNAL_PASSWORD:
+            text_input_container.empty()
 
-            journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
-            line_chart = alt.Chart(journal_full).mark_line(size = 3).encode(
-                x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
-                y = alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
-                color = alt.value("#FFAA00")
-            ).configure_view(strokeWidth=0).configure_axis(grid=False)
-            st.altair_chart(line_chart, use_container_width=True)
-            st.subheader('Statistics')
+            journal_full = journal_full[::-1].drop(columns=['Signal'])
+            journal_full = journal_full.dropna()
+            journal_full = journal_full.head(n)
+            journal_full = journal_full.reset_index()
 
-        one, two, three, four, five = st.columns([1, 2, 2, 2, 1])
-        with two:
-            win_count = journal_full['PnL'][journal_full['PnL'] > 0].count()
-            loss_count = journal_full['PnL'][journal_full['PnL'] <= 0].count()
-            win_percentage = round(win_count/(win_count + loss_count) * 100, 2)
-            win_rate = win_count/(win_count + loss_count)
+            one, two, three, four = st.columns([1, 2, 4, 1])
+            with two:
+                last_n_pnl = journal_full['PnL'].sum()
+                last_n_pnl = format(last_n_pnl, '.2f') + ' R'
+                st.subheader(f'Cummulative P&L: {last_n_pnl}')
 
-            total_win = journal_full['PnL'][journal_full['PnL'] > 0].sum()
-            total_loss = journal_full['PnL'][journal_full['PnL'] <= 0].sum()
+            one, two, three = st.columns([1, 6, 1])
+            with two:
+                bar_chart = alt.Chart(journal_full).mark_bar(size = 5).encode(
+                    x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                    y = alt.Y('PnL', axis=alt.Axis(title='P&L')),
+                    color=alt.condition(
+                        alt.datum.PnL > 0,
+                        alt.value('green'),
+                        alt.value('red')
+                    )
+                ).configure_view(strokeWidth=0).configure_axis(grid=False)
+                st.altair_chart(bar_chart, use_container_width=True)
 
-            avg_win = round(total_win/win_count, 2)
-            avg_loss = round(total_loss/loss_count, 2)
+                journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
+                line_chart = alt.Chart(journal_full).mark_line(size = 3).encode(
+                    x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                    y = alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
+                    color = alt.value("#FFAA00")
+                ).configure_view(strokeWidth=0).configure_axis(grid=False)
+                st.altair_chart(line_chart, use_container_width=True)
+                st.subheader('Statistics')
 
-            expectancy = round(win_rate*avg_win + (1-win_rate)*avg_loss, 2)
+            one, two, three, four, five = st.columns([1, 2, 2, 2, 1])
+            with two:
+                win_count = journal_full['PnL'][journal_full['PnL'] > 0].count()
+                loss_count = journal_full['PnL'][journal_full['PnL'] <= 0].count()
+                win_percentage = round(win_count/(win_count + loss_count) * 100, 2)
+                win_rate = win_count/(win_count + loss_count)
 
-            st.text(f'Average gain/loss: {expectancy} R')
-            st.text(f'Win rate: {win_percentage} %')
-            st.text(f'Average winning trade: {avg_win} R')
-            st.text(f'Average losing trade: {avg_loss} R')
-            st.text(f'Number of winning trades: {win_count}')
-            st.text(f'Number of losing trades: {loss_count}')
-        with three:
-            win_max = journal_full['PnL'].max()
-            loss_max = journal_full['PnL'].min()
-            profit_factor = round(total_win/total_loss, 2)
-            std_dev = round(journal_full['PnL'].std(), 2)
+                total_win = journal_full['PnL'][journal_full['PnL'] > 0].sum()
+                total_loss = journal_full['PnL'][journal_full['PnL'] <= 0].sum()
 
-            journal_full['Win'] = journal_full['PnL'] > 0
-            journal_full['start_of_streak'] = journal_full.Win.ne(journal_full['Win'].shift())
-            journal_full['streak_id'] = journal_full['start_of_streak'].cumsum()
-            journal_full['streak_counter'] = journal_full.groupby('streak_id').cumcount() + 1
+                avg_win = round(total_win/win_count, 2)
+                avg_loss = round(total_loss/loss_count, 2)
 
-            win_filter = journal_full[journal_full['Win'] == True]
-            loss_filter = journal_full[journal_full['Win'] == False]
-            max_con_win = win_filter['streak_counter'].max()
-            max_con_loss = loss_filter['streak_counter'].max()
+                expectancy = round(win_rate*avg_win + (1-win_rate)*avg_loss, 2)
 
-            st.text(f'Profit factor: {profit_factor}')
-            st.text(f'Trade P&L standard deviation: {std_dev} R')
-            st.text(f'Largest gain: {win_max} R')
-            st.text(f'Largest loss: {loss_max} R')
+                st.text(f'Average gain/loss: {expectancy} R')
+                st.text(f'Win rate: {win_percentage} %')
+                st.text(f'Average winning trade: {avg_win} R')
+                st.text(f'Average losing trade: {avg_loss} R')
+                st.text(f'Number of winning trades: {win_count}')
+                st.text(f'Number of losing trades: {loss_count}')
+            with three:
+                win_max = journal_full['PnL'].max()
+                loss_max = journal_full['PnL'].min()
+                profit_factor = round(total_win/total_loss, 2)
+                std_dev = round(journal_full['PnL'].std(), 2)
 
-            st.text(f'Max consecutive wins: {max_con_win}')
-            st.text(f'Max consecutive loss: {max_con_loss}')
-        with four:
-            total_commission = round(journal_full['Comm'].sum() / RISK, 2)
+                journal_full['Win'] = journal_full['PnL'] > 0
+                journal_full['start_of_streak'] = journal_full.Win.ne(journal_full['Win'].shift())
+                journal_full['streak_id'] = journal_full['start_of_streak'].cumsum()
+                journal_full['streak_counter'] = journal_full.groupby('streak_id').cumcount() + 1
 
-            conditions = [(journal_full['L/S'] == 'Long'), (journal_full['L/S'] == 'Short')]
-            slippage_long = (journal_full['Entry'] - journal_full['EntryFilled'] + journal_full['ExitFilled'] - journal_full['Exit']) * journal_full['Qty']
-            slippage_short = (journal_full['EntryFilled'] - journal_full['Entry'] + journal_full['Exit'] - journal_full['ExitFilled']) * journal_full['Qty']
-            values = [slippage_long, slippage_short]
-            journal_full['Slippage'] = np.select(conditions, values)
-            total_slippage = round(journal_full['Slippage'].sum()/ RISK, 2)
+                win_filter = journal_full[journal_full['Win'] == True]
+                loss_filter = journal_full[journal_full['Win'] == False]
+                max_con_win = win_filter['streak_counter'].max()
+                max_con_loss = loss_filter['streak_counter'].max()
 
-            st.text(f'Average Holding Time: N/A')
-            st.text(f'Total commission: {total_commission} R')
-            st.text(f'Total slippage: {total_slippage} R')
+                st.text(f'Profit factor: {profit_factor}')
+                st.text(f'Trade P&L standard deviation: {std_dev} R')
+                st.text(f'Largest gain: {win_max} R')
+                st.text(f'Largest loss: {loss_max} R')
+
+                st.text(f'Max consecutive wins: {max_con_win}')
+                st.text(f'Max consecutive loss: {max_con_loss}')
+            with four:
+                total_commission = round(journal_full['Comm'].sum() / RISK, 2)
+
+                conditions = [(journal_full['L/S'] == 'Long'), (journal_full['L/S'] == 'Short')]
+                slippage_long = (journal_full['Entry'] - journal_full['EntryFilled'] + journal_full['ExitFilled'] - journal_full['Exit']) * journal_full['Qty']
+                slippage_short = (journal_full['EntryFilled'] - journal_full['Entry'] + journal_full['Exit'] - journal_full['ExitFilled']) * journal_full['Qty']
+                values = [slippage_long, slippage_short]
+                journal_full['Slippage'] = np.select(conditions, values)
+                total_slippage = round(journal_full['Slippage'].sum()/ RISK, 2)
+
+                st.text(f'Average Holding Time: N/A')
+                st.text(f'Total commission: {total_commission} R')
+                st.text(f'Total slippage: {total_slippage} R')
 
     if select_view == 'Table':
         journal_full = journal_full[::-1].drop(columns=['Signal'])
@@ -864,3 +876,38 @@ if screen == 'Journal':
         else:
             st.error("Incorrect password")
 
+if screen == 'Reports':
+    mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
+
+    one,two,three,four = st.columns([1,3,3,1])
+    bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
+        x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
+        y=alt.Y('SSpike', axis=alt.Axis(title='Sigma Spike')),
+        color=alt.condition(
+            alt.datum.SSpike > 0,
+            alt.value('green'),
+            alt.value('red')
+        )
+    ).configure_view(strokeWidth=0)
+
+    mkt_report = mkt_report.set_index('Symbol')
+    with two:
+        st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
+                                              'Change': '{0:.2f}',
+                                              '% Change': '{0:.2f}',
+                                              'SSpike': '{0:.2f}',
+                                              'Kpos': '{0:.2f}',
+                                              'YrRange': '{0:.2f}'},
+                                             na_rep = 'N/A'))
+    with three:
+        st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
+                                              'Change': '{0:.2f}',
+                                              '% Change': '{0:.2f} %',
+                                              'SSpike': '{0:.2f}',
+                                              'Kpos': '{0:.2f}',
+                                              'YrRange': '{0:.2f}'},
+                                             na_rep = 'N/A'))
+
+    one, two, three = st.columns([1, 6, 1])
+    with two:
+        st.altair_chart(bar_chart, use_container_width=True)
