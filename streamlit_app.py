@@ -878,36 +878,43 @@ if screen == 'Journal':
 
 if screen == 'Reports':
     mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
-    '---'
-    one,two,three,four = st.columns([1,3,3,1])
-    bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
-        x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
-        y=alt.Y('SSpike', axis=alt.Axis(title='Sigma Spike')),
-        color=alt.condition(
-            alt.datum.SSpike > 0,
-            alt.value('green'),
-            alt.value('red')
-        )
-    ).configure_view(strokeWidth=0)
-
-    mkt_report = mkt_report.set_index('Symbol')
+    
+    one, two, three = st.columns([1, 3, 1])
     with two:
-        st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
-                                              'Change': '{0:.2f}',
-                                              '%Change': '{0:.2f}',
-                                              'SSpike': '{0:.2f}',
-                                              'Kpos': '{0:.2f}',
-                                              'YrRange': '{0:.2f}'},
-                                             na_rep = 'N/A'))
-    with three:
-        st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
-                                              'Change': '{0:.2f}',
-                                              '%Change': '{0:.2f} %',
-                                              'SSpike': '{0:.2f}',
-                                              'Kpos': '{0:.2f}',
-                                              'YrRange': '{0:.2f}'},
-                                             na_rep = 'N/A'))
+        # Open orders
+        '---'
+        report_select = st.Radio("", options = ['EOD Feb 1', 'Sectors'])
+        
+    if report_select == 'EOD Feb 1':
+        one,two,three,four = st.columns([1,3,3,1])
+        bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
+            x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
+            y=alt.Y('SSpike', axis=alt.Axis(title='Sigma Spike')),
+            color=alt.condition(
+                alt.datum.SSpike > 0,
+                alt.value('green'),
+                alt.value('red')
+            )
+        ).configure_view(strokeWidth=0)
 
-    one, two, three = st.columns([1, 6, 1])
-    with two:
-        st.altair_chart(bar_chart, use_container_width=True)
+        mkt_report = mkt_report.set_index('Symbol')
+        with two:
+            st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
+                                                  'Change': '{0:.2f}',
+                                                  '%Change': '{0:.2f}',
+                                                  'SSpike': '{0:.2f}',
+                                                  'Kpos': '{0:.2f}',
+                                                  'YrRange': '{0:.2f}'},
+                                                 na_rep = 'N/A'))
+        with three:
+            st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
+                                                  'Change': '{0:.2f}',
+                                                  '%Change': '{0:.2f} %',
+                                                  'SSpike': '{0:.2f}',
+                                                  'Kpos': '{0:.2f}',
+                                                  'YrRange': '{0:.2f}'},
+                                                 na_rep = 'N/A'))
+
+        one, two, three = st.columns([1, 6, 1])
+        with two:
+            st.altair_chart(bar_chart, use_container_width=True)
