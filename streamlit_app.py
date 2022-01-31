@@ -366,8 +366,7 @@ if screen == 'PSC':
                 bars = run_query_cached(
                     PRICES_DB, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
                 bars = bars.fillna('N/A')
-            bars['atr'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
-                                                      window = 21).average_true_range()
+
             bars['return%'] = bars['Close'].pct_change(1) * 100
             if i == len(symbol) - 1:
                 bars['std dev'] = bars['return%'].rolling(21).std()
