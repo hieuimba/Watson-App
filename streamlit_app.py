@@ -894,7 +894,7 @@ if screen == 'Reports':
     with two:
         st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
                                               'Change': '{0:.2f}',
-                                              '% Change': '{0:.2f}',
+                                              '%Change': '{0:.2f}',
                                               'SSpike': '{0:.2f}',
                                               'Kpos': '{0:.2f}',
                                               'YrRange': '{0:.2f}'},
@@ -902,7 +902,7 @@ if screen == 'Reports':
     with three:
         st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
                                               'Change': '{0:.2f}',
-                                              '% Change': '{0:.2f} %',
+                                              '%Change': '{0:.2f} %',
                                               'SSpike': '{0:.2f}',
                                               'Kpos': '{0:.2f}',
                                               'YrRange': '{0:.2f}'},
