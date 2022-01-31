@@ -30,6 +30,7 @@ TRADINGVIEW = 'html/tradingview.html'
 TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
 JOURNAL_PASSWORD = st.secrets['journal_password']
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
+today_date = (datetime.today() - timedelta(hours=5)).strftime('%d-%m')
 
 # ----------LAYOUT SETUP----------
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
@@ -879,13 +880,13 @@ if screen == 'Journal':
 if screen == 'Reports':
     mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
     
-    one, two, three = st.columns([1, 3, 1])
+    one, two, three = st.columns([1, 6, 1])
     with two:
         # Open orders
         '---'
-        report_select = st.radio("", options = ['EOD Feb 1', 'Sectors'])
+        report_select = st.radio("", options = [f'Market Report - {today_date}', 'Sectors'])
         
-    if report_select == 'EOD Feb 1':
+    if report_select == f'Market Report - {today_date}':
         one,two,three,four = st.columns([1,3,3,1])
         bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
             x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
