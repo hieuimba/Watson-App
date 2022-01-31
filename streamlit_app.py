@@ -883,7 +883,7 @@ if screen == 'Reports':
     with two:
         # Open orders
         '---'
-        report_select = st.Radio("", options = ['EOD Feb 1', 'Sectors'])
+        report_select = st.radio("", options = ['EOD Feb 1', 'Sectors'])
         
     if report_select == 'EOD Feb 1':
         one,two,three,four = st.columns([1,3,3,1])
