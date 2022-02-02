@@ -30,19 +30,19 @@ TRADINGVIEW = 'html/tradingview.html'
 TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
 JOURNAL_PASSWORD = st.secrets['journal_password']
 today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
-today_date = (datetime.today() - timedelta(hours=5)).strftime('%d-%m')
 
 # ----------LAYOUT SETUP----------
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
 HIDE_SETTINGS = "<style>header {visibility: hidden;}</style>"
 page_icon = Image.open(FAVICON_PATH)
 
-st.set_page_config(layout = 'wide', page_title = 'Watson 3', page_icon = '🔧')  # page_icon
-st.markdown(HIDE_FOOTER, unsafe_allow_html = True)
-st.markdown(HIDE_SETTINGS, unsafe_allow_html = True)
+st.set_page_config(layout='wide', page_title='Watson 3', page_icon='🔧')  # page_icon
+st.markdown(HIDE_FOOTER, unsafe_allow_html=True)
+st.markdown(HIDE_SETTINGS, unsafe_allow_html=True)
+
 
 # ----------ALPHA VANTAGE---------
-def get_earnings(api_key, horizon, symbol = None):
+def get_earnings(api_key, horizon, symbol=None):
     if symbol is not None:
         url = f'{API_BASE_URL}function=EARNINGS_CALENDAR&symbol={symbol}&horizon={horizon}&apikey={api_key}'
         response = requests.get(url)
@@ -53,27 +53,29 @@ def get_earnings(api_key, horizon, symbol = None):
 
 
 # ----------DATABASE SETUP--------
-@st.cache(hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 7200)
+@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
 def connect_db(database):
-    return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle = 7200)
+    return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle=7200)
 
 
-@st.cache(allow_output_mutation = True, hash_funcs = {sqlalchemy.engine.base.Engine: id}, ttl = 3600)
-def run_query_cached(connection, query, index_col = None):
+@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=3600)
+def run_query_cached(connection, query, index_col=None):
     return pd.read_sql_query(query, connection, index_col)
 
 
-def run_query(connection, query, index_col = None):
+def run_query(connection, query, index_col=None):
     return pd.read_sql_query(query, connection, index_col)
 
 
 def run_command(connection, query):
     connection.execute(query)
 
+
 POSITIONS_DB = connect_db('positions')
 PRICES_DB = connect_db('prices')
 JOURNAL_DB = connect_db('journal')
 REPORT_DB = connect_db('report')
+
 
 # ----------PREMARKET-------------
 def is_in_time_period(start_time, end_time, now_time):
@@ -82,6 +84,7 @@ def is_in_time_period(start_time, end_time, now_time):
     else:
         # Over midnight:
         return now_time >= start_time or now_time <= end_time
+
 
 pre_market = is_in_time_period(
     dt.time(13, 00), dt.time(13, 30), dt.datetime.now().time())
@@ -104,20 +107,20 @@ with three:
 one, two, three = st.columns([1, 3, 1])
 with two:
     if pre_market == True:
-        screen = st.radio('', options = [
-            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders'])
+        screen = st.radio('', options=[
+            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'Journal'])
     else:
-        screen = st.radio('', options = [
-            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Journal', 'Sectors', 'Orders','Reports'])
-st.markdown(HORIZONTAL_RADIO, unsafe_allow_html = True)
+        screen = st.radio('', options=[
+            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'Journal'])
+st.markdown(HORIZONTAL_RADIO, unsafe_allow_html=True)
 OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
 
 if screen == 'Positions':
-    st.markdown(POSITIONS_HEADING, unsafe_allow_html = True)
+    st.markdown(POSITIONS_HEADING, unsafe_allow_html=True)
 elif screen == 'PSC':
-    st.markdown(PSC_HEADING, unsafe_allow_html = True)
+    st.markdown(PSC_HEADING, unsafe_allow_html=True)
 else:
-    st.markdown(OTHER_HEADING, unsafe_allow_html = True)
+    st.markdown(OTHER_HEADING, unsafe_allow_html=True)
 
 # ----------POSITIONS SCREEN------
 if screen == 'Positions':
@@ -152,7 +155,7 @@ if screen == 'Positions':
 
     # Positions summary
 
-    one, two, three = st.columns([4, 12, 4])
+    one, two, three = st.columns([1, 3, 1])
     with two:
         '---'
     one, two, three, four = st.columns([4, 9, 3, 4])
@@ -170,25 +173,25 @@ if screen == 'Positions':
     with two:
         '---'
         open_positions = open_positions.sort_values(
-            by = 'Unrlzd P&L', ascending = False)
-        open_positions = open_positions.drop(columns = ['Qty'])
+            by='Unrlzd P&L', ascending=False)
+        open_positions = open_positions.drop(columns=['Qty'])
         st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
                 f'{len(open_positions)} trades in progress...')
-        st.table(open_positions.style.set_table_styles([{'selector' : '',
-                            'props' : [('border',
-                                        '1px solid white')]}]).format({'Qty': '{0:.2f}',
-                                              'Entry': '{0:.2f}',
-                                              'Last': '{0:.2f}',
-                                              'Stop': '{0:.2f}',
-                                              'Target': '{0:.2f}',
-                                              'Unrlzd P&L': '{0:.2f} R',
-                                              'Rlzd P&L': '{0:.2f} R',
-                                              'Open Risk': '{0:.2f} R'},
-                                             na_rep = 'N/A'))
+        st.table(open_positions.style.set_table_styles([{'selector': '',
+                                                         'props': [('border',
+                                                                    '1px solid white')]}]).format({'Qty': '{0:.2f}',
+                                                                                                   'Entry': '{0:.2f}',
+                                                                                                   'Last': '{0:.2f}',
+                                                                                                   'Stop': '{0:.2f}',
+                                                                                                   'Target': '{0:.2f}',
+                                                                                                   'Unrlzd P&L': '{0:.2f} R',
+                                                                                                   'Rlzd P&L': '{0:.2f} R',
+                                                                                                   'Open Risk': '{0:.2f} R'},
+                                                                                                  na_rep='N/A'))
         if len(closed_positions) > 0:
             closed_positions = closed_positions.sort_values(
-                by = 'Rlzd P&L', ascending = False)
-            closed_positions = closed_positions.drop(columns = ['Qty'])
+                by='Rlzd P&L', ascending=False)
+            closed_positions = closed_positions.drop(columns=['Qty'])
             st.text(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
                     f'{len(closed_positions)} closed trades')
             st.table(closed_positions.style.format({'Qty': '{0:.2f}',
@@ -198,106 +201,39 @@ if screen == 'Positions':
                                                     'Target': '{0:.2f}',
                                                     'Unrlzd P&L': '{0:.2f} R',
                                                     'Rlzd P&L': '{0:.2f} R'},
-                                                   na_rep = 'N/A'))
-    # TradingView Chart
-    one, two, three = st.columns([1, 3, 1])
-    with two:
+                                                   na_rep='N/A'))
+         # TradingView Chart
         select_chart = list(open_positions.index.values) + \
                        list(closed_positions.index.values) + ['SPY']
-        tradingview = open(TRADINGVIEW, 'r', encoding = 'utf-8')
+        tradingview = open(TRADINGVIEW, 'r', encoding='utf-8')
         source_code = tradingview.read()
 
         select = st.selectbox('', (select_chart))
         source_code = source_code.replace('DOW', select)
-        components.html(source_code, height = 800)
+        components.html(source_code, height=800)
 
-# ----------ORDERS SCREEN---------
-if screen == 'Orders':
+
     # Get data
-    open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'Symbol')
-    closed_orders = run_query(POSITIONS_DB, "SELECT * FROM closed_orders", 'Symbol')
-    one, two, three = st.columns([1, 3, 1])
-    with two:
-        # Open orders
-        '---'
-        st.text(f'{len(open_orders)} open orders')
-        open_orders.drop(columns = ['Filled Qty', 'Qty'], inplace = True)
-        open_orders = open_orders[['Action', 'Type', 'Price', 'Status']]
-        st.table(open_orders.style.format({'Price': '{0:.2f}'},
-                                          na_rep = 'N/A'))
+        order_expander = st.expander(label='Orders')
+        with order_expander:
+            open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'Symbol')
 
-        # Closed orders
-        st.text(f'{len(closed_orders)} closed orders')
-        closed_orders.sort_values(by = 'Status', inplace = True, ascending = False)
-        closed_orders.drop(columns = ['Rlzd P&L', 'Filled Qty', 'Qty'], inplace = True)
-        closed_orders = closed_orders[['Action', 'Type', 'Price', 'Filled At', 'Status', 'Time']]
-        st.table(closed_orders.style.format({'Price': '{0:.2f}',
-                                             'Filled At': '{0:.2f}',
-                                             'Comm': '{0:.2f}'},
-                                            na_rep = 'N/A'))
+            # Open orders
+            st.text(f'{len(open_orders)} open orders')
+            open_orders.drop(columns=['Filled Qty', 'Qty'], inplace=True)
+            open_orders = open_orders[['Action', 'Type', 'Price', 'Status']]
+            st.table(open_orders.style.format({'Price': '{0:.2f}'},
+                                              na_rep='N/A'))
 
-# ----------SECTORS SCREEN--------
-if screen == 'Sectors':
-    '---'
-    sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF',
-                   'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
-    beta_list = []
-    matrix = pd.DataFrame()
-    corr_matrix = pd.DataFrame()
-    std_dev = pd.DataFrame()
-
-    one, two = st.columns([1, 5])
-    with one:
-        options = st.radio('Select period:', options = ['1 M', '3 M', '6 M', '1 Y'],
-                           help = '1 month = 21 trading days')
-        if options == '1 M':
-            period = 21
-        elif options == '3 M':
-            period = 63
-        elif options == '6 M':
-            period = 126
-        elif options == '1 Y':
-            period = 252
-
-    # Translation table
-    with two:
-        sector_name = ['S&P 500 ETF', 'Energy', 'Industrials', 'Technology', 'Consumer Discretionary',
-                       'Financials', 'Materials', 'Consumer Staples', 'Health Care', 'Utilities',
-                       'Real Estate', 'Communication Services', 'Russell 2000 ETF', 'Invesco QQQ Trust']
-        sector_trans = pd.DataFrame(data= sector_name, columns = [
-            'Name'], index = sector_list)
-        st.table(sector_trans.T)
-
-    # Correlation table
-    spy = run_query_cached(
-        PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
-    spy['return%'] = spy['Close'].pct_change(1) * 100
-    spy = spy.tail(period)
-    spy['var'] = spy['return%'].var()
-    for i in range(0, len(sector_list)):
-        sector = run_query_cached(
-            PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
-        sector['return%'] = sector['Close'].pct_change(1) * 100
-        sector = sector.tail(period)
-        matrix[f'{sector_list[i]}'] = sector['return%'].values
-        corr_matrix = matrix.corr()
-
-        sector['bm_return%'] = spy['return%'].to_list()
-        cov_df = sector[['return%', "bm_return%"]].cov()
-        bm_var = spy.iloc[-1]['var']
-        beta = cov_df.iloc[1, 0] / bm_var
-        beta_list.append(beta)
-
-    temp = pd.DataFrame(index = sector_list)
-    temp['Beta'] = beta_list
-    temp = temp.T
-    corr_matrix = corr_matrix.append(temp)
-    u = corr_matrix.index.get_level_values(0)
-    corr_matrix = corr_matrix.style.background_gradient(cmap = 'Oranges', axis = None, low = -0.5,
-                                                        subset = pd.IndexSlice[u[:-1], :])
-    corr_matrix = corr_matrix.background_gradient(
-        cmap = 'Greens', axis = None, subset = pd.IndexSlice[u[-1], :])
-    st.table(corr_matrix.format(precision = 3))
+            # Closed orders
+            st.text(f'{len(closed_orders)} closed orders')
+            closed_orders.sort_values(by='Status', inplace=True, ascending=False)
+            closed_orders.drop(columns=['Rlzd P&L', 'Filled Qty', 'Qty'], inplace=True)
+            closed_orders = closed_orders[['Action', 'Type', 'Price', 'Filled At', 'Status', 'Time']]
+            st.table(closed_orders.style.format({'Price': '{0:.2f}',
+                                                 'Filled At': '{0:.2f}',
+                                                 'Comm': '{0:.2f}'},
+                                                na_rep='N/A'))
 
 # ----------CALC SCREEN-----------
 if screen == 'PSC':
@@ -318,17 +254,17 @@ if screen == 'PSC':
     one, two, three = st.columns([2, 3, 1])
     with one:
         risk_options = [10, 20, 30, 50, 80, 100]
-        risk = st.selectbox(label = '$ Risk', options = risk_options, index = 1)
-        entry = st.number_input(label = 'Entry', value = 2.00, step = 0.1)
-        stop = st.number_input(label = 'Stop', value = 1.00, step = 0.1)
+        risk = st.selectbox(label='$ Risk', options=risk_options, index=1)
+        entry = st.number_input(label='Entry', value=2.00, step=0.1)
+        stop = st.number_input(label='Stop', value=1.00, step=0.1)
         target = entry + (entry - stop)
         distance = round(entry - stop, 2)
         distance_percent = round(abs(distance) / entry, 2) * 100
         size = round(risk / abs(distance), 3)
         dollar_size = round(size * entry, 2)
         direction = 'Long' if distance > 0 else 'Short'
-        st.number_input('Target', min_value = target,
-                        max_value = target, value = target)
+        st.number_input('Target', min_value=target,
+                        max_value=target, value=target)
         st.text(f'Direction: {direction}')
         st.subheader(f'Size: {size} share' if size ==
                                               1 else f'Size: {size} shares')
@@ -337,12 +273,12 @@ if screen == 'PSC':
         st.subheader('R table:')
         price_range = [stop, stop + distance / 2, entry,
                        entry + distance / 2, target, entry + distance * 2]
-        price_range = pd.DataFrame(price_range, columns = ['Price'],
-                                   index = ['-1 R', '-1.5 R', '0 R', '0.5 R', '1 R', '2 R']).T
-        st.table(price_range.style.format(precision = 2))
+        price_range = pd.DataFrame(price_range, columns=['Price'],
+                                   index=['-1 R', '-1.5 R', '0 R', '0.5 R', '1 R', '2 R']).T
+        st.table(price_range.style.format(precision=2))
     with three:
-        options = st.radio('Select period:', options = [
-            '1 M', '3 M', '6 M', '1 Y'], help = '1 month = 21 trading days')
+        options = st.radio('Select period:', options=[
+            '1 M', '3 M', '6 M', '1 Y'], help='1 month = 21 trading days')
         if options == '1 M':
             period = 21
         elif options == '3 M':
@@ -352,8 +288,8 @@ if screen == 'PSC':
         elif options == '1 Y':
             period = 252
     with two:
-        symbol = st.multiselect('Select symbols:', options = symbol_list,
-                                default = ['SPY'] + open_positions.index.values.tolist())
+        symbol = st.multiselect('Select symbols:', options=symbol_list,
+                                default=['SPY'] + open_positions.index.values.tolist())
 
         spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
         spy['return%'] = spy['Close'].pct_change(1) * 100
@@ -374,7 +310,7 @@ if screen == 'PSC':
             if i == len(symbol) - 1:
                 bars['std dev'] = bars['return%'].rolling(21).std()
                 bars['ATR'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
-                                                          window = 21).average_true_range()
+                                                          window=21).average_true_range()
                 bars['avg vol'] = bars['Volume'].rolling(21).mean()
             bars = bars.tail(period)
             matrix[f'{symbol[i]}'] = bars['return%'].values
@@ -386,19 +322,19 @@ if screen == 'PSC':
             beta = cov_df.iloc[1, 0] / bm_var
             beta_list.append(beta)
 
-        temp = pd.DataFrame(index = symbol)
+        temp = pd.DataFrame(index=symbol)
         temp['Beta-M'] = beta_list
         temp = temp.T
-        temp2 = pd.DataFrame(index = symbol)
+        temp2 = pd.DataFrame(index=symbol)
         temp2['Beta-S'] = 0
         temp2 = temp2.T
         corr_matrix = corr_matrix.append(temp)
         corr_matrix = corr_matrix.append(temp2)
         u = corr_matrix.index.get_level_values(0)
-        corr_matrix = corr_matrix.style.background_gradient(cmap = 'RdYlGn_r', axis = None,
-                                                            subset = pd.IndexSlice[u[:-2], :])
+        corr_matrix = corr_matrix.style.background_gradient(cmap='RdYlGn_r', axis=None,
+                                                            subset=pd.IndexSlice[u[:-2], :])
         # corr_matrix = corr_matrix.background_gradient(cmap = 'White', axis = None, subset = pd.IndexSlice[u[-1], :])
-        st.table(corr_matrix.format(precision = 3))
+        st.table(corr_matrix.format(precision=3))
 
         st.text(
             f"Symbol: {bars.iloc[-1]['Symbol']},    Name: {bars.iloc[-1]['Name']},    Sector: {bars.iloc[-1]['Sector']}")
@@ -440,10 +376,10 @@ if screen == 'Watchlist':
         in_progress_symbols = open_positions.index.to_list()
 
         pullback = watchlist[watchlist['Setup'] ==
-                             'pullback'].drop(columns = ['Setup', 'Qty'])
-        pullback.replace(0, np.nan, inplace = True)
-        pullback.sort_values(by = ['L/S', 'Symbol'],
-                             inplace = True, ascending = [True, True])
+                             'pullback'].drop(columns=['Setup', 'Qty'])
+        pullback.replace(0, np.nan, inplace=True)
+        pullback.sort_values(by=['L/S', 'Symbol'],
+                             inplace=True, ascending=[True, True])
 
         all = pullback
         in_progress_boolean = pullback.index.isin(in_progress_symbols)
@@ -452,32 +388,32 @@ if screen == 'Watchlist':
         setting_up = all[setting_up_boolean]
         inbox = pullback[pullback['Entry'].isna()]
 
-        watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index = 1)
+        watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index=1)
         if watchlist_type == "All":
             st.table(all.style.format({'Qty': '{0:.2f}',
                                        'Entry': '{0:.2f}',
                                        'Stop': '{0:.2f}',
                                        'Target': '{0:.2f}'},
-                                      na_rep = 'N/A'))
+                                      na_rep='N/A'))
         if watchlist_type == "In Progress":
             st.table(in_progress.style.format({'Qty': '{0:.2f}',
                                                'Entry': '{0:.2f}',
                                                'Stop': '{0:.2f}',
                                                'Target': '{0:.2f}'},
-                                              na_rep = 'N/A'))
+                                              na_rep='N/A'))
         if watchlist_type == "Setting Up":
             setting_up = setting_up[setting_up['Entry'].notna()]
             st.table(setting_up.style.format({'Qty': '{0:.2f}',
                                               'Entry': '{0:.2f}',
                                               'Stop': '{0:.2f}',
                                               'Target': '{0:.2f}'},
-                                             na_rep = 'N/A'))
+                                             na_rep='N/A'))
         if watchlist_type == "Inbox":
             st.table(inbox.style.format({'Qty': '{0:.2f}',
                                          'Entry': '{0:.2f}',
                                          'Stop': '{0:.2f}',
                                          'Target': '{0:.2f}'},
-                                        na_rep = 'N/A'))
+                                        na_rep='N/A'))
 
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
@@ -586,12 +522,12 @@ if screen == 'Watchlist':
             selections = str(selections)[1:-1]
 
             tradingview = open(
-                TRADINGVIEW_WATCHLIST, 'r', encoding = 'utf-8')
+                TRADINGVIEW_WATCHLIST, 'r', encoding='utf-8')
             source_code = tradingview.read()
             source_code = source_code.replace("'list'", selections)
             source_code = source_code.replace(
                 'DOW', pullback.index.values.tolist()[0])
-            components.html(source_code, height = 800)
+            components.html(source_code, height=800)
         else:
             st.text('Watchlist is empty')
 
@@ -608,9 +544,9 @@ if screen == 'Journal':
         '---'
     one, two, three, four = st.columns([1, 2, 4, 1])
     with two:
-        select_view = st.radio('Select view:', options=['Summary','Table', 'List', 'Gallery'], index=0)
+        select_view = st.radio('Select view:', options=['Summary', 'Table', 'List', 'Gallery'], index=0)
     with three:
-        last_n_trade = st.radio('Last:', ('All','50 trades', '25 trades', '10 trades'), index=1)
+        last_n_trade = st.radio('Last:', ('All', '50 trades', '25 trades', '10 trades'), index=1)
         if last_n_trade == 'All':
             n = len(journal_full)
         if last_n_trade == '50 trades':
@@ -642,9 +578,9 @@ if screen == 'Journal':
 
             one, two, three = st.columns([1, 6, 1])
             with two:
-                bar_chart = alt.Chart(journal_full).mark_bar(size = 5).encode(
-                    x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
-                    y = alt.Y('PnL', axis=alt.Axis(title='P&L')),
+                bar_chart = alt.Chart(journal_full).mark_bar(size=5).encode(
+                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                    y=alt.Y('PnL', axis=alt.Axis(title='P&L')),
                     color=alt.condition(
                         alt.datum.PnL > 0,
                         alt.value('green'),
@@ -654,10 +590,10 @@ if screen == 'Journal':
                 st.altair_chart(bar_chart, use_container_width=True)
 
                 journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
-                line_chart = alt.Chart(journal_full).mark_line(size = 3).encode(
-                    x= alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
-                    y = alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
-                    color = alt.value("#FFAA00")
+                line_chart = alt.Chart(journal_full).mark_line(size=3).encode(
+                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
+                    y=alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
+                    color=alt.value("#FFAA00")
                 ).configure_view(strokeWidth=0).configure_axis(grid=False)
                 st.altair_chart(line_chart, use_container_width=True)
                 st.subheader('Statistics')
@@ -666,16 +602,16 @@ if screen == 'Journal':
             with two:
                 win_count = journal_full['PnL'][journal_full['PnL'] > 0].count()
                 loss_count = journal_full['PnL'][journal_full['PnL'] <= 0].count()
-                win_percentage = round(win_count/(win_count + loss_count) * 100, 2)
-                win_rate = win_count/(win_count + loss_count)
+                win_percentage = round(win_count / (win_count + loss_count) * 100, 2)
+                win_rate = win_count / (win_count + loss_count)
 
                 total_win = journal_full['PnL'][journal_full['PnL'] > 0].sum()
                 total_loss = journal_full['PnL'][journal_full['PnL'] <= 0].sum()
 
-                avg_win = round(total_win/win_count, 2)
-                avg_loss = round(total_loss/loss_count, 2)
+                avg_win = round(total_win / win_count, 2)
+                avg_loss = round(total_loss / loss_count, 2)
 
-                expectancy = round(win_rate*avg_win + (1-win_rate)*avg_loss, 2)
+                expectancy = round(win_rate * avg_win + (1 - win_rate) * avg_loss, 2)
 
                 st.text(f'Average gain/loss: {expectancy} R')
                 st.text(f'Win rate: {win_percentage} %')
@@ -686,7 +622,7 @@ if screen == 'Journal':
             with three:
                 win_max = journal_full['PnL'].max()
                 loss_max = journal_full['PnL'].min()
-                profit_factor = round(total_win/total_loss, 2)
+                profit_factor = round(total_win / total_loss, 2)
                 std_dev = round(journal_full['PnL'].std(), 2)
 
                 journal_full['Win'] = journal_full['PnL'] > 0
@@ -710,11 +646,13 @@ if screen == 'Journal':
                 total_commission = round(journal_full['Comm'].sum() / RISK, 2)
 
                 conditions = [(journal_full['L/S'] == 'Long'), (journal_full['L/S'] == 'Short')]
-                slippage_long = (journal_full['Entry'] - journal_full['EntryFilled'] + journal_full['ExitFilled'] - journal_full['Exit']) * journal_full['Qty']
-                slippage_short = (journal_full['EntryFilled'] - journal_full['Entry'] + journal_full['Exit'] - journal_full['ExitFilled']) * journal_full['Qty']
+                slippage_long = (journal_full['Entry'] - journal_full['EntryFilled'] + journal_full['ExitFilled'] -
+                                 journal_full['Exit']) * journal_full['Qty']
+                slippage_short = (journal_full['EntryFilled'] - journal_full['Entry'] + journal_full['Exit'] -
+                                  journal_full['ExitFilled']) * journal_full['Qty']
                 values = [slippage_long, slippage_short]
                 journal_full['Slippage'] = np.select(conditions, values)
-                total_slippage = round(journal_full['Slippage'].sum()/ RISK, 2)
+                total_slippage = round(journal_full['Slippage'].sum() / RISK, 2)
 
                 st.text(f'Average Holding Time: N/A')
                 st.text(f'Total commission: {total_commission} R')
@@ -733,6 +671,7 @@ if screen == 'Journal':
             total_pnl = journal_full['PnL'].sum()
             total_pnl = format(total_pnl, '.2f') + ' R'
 
+
             def get_pnl_between_two_dates(start_date, end_date):
                 after_start_date = journal_full['Date Close'] >= start_date
                 before_end_date = journal_full['Date Close'] <= end_date
@@ -741,12 +680,13 @@ if screen == 'Journal':
                 pnl = filter['PnL'].sum()
                 return format(pnl, '.2f') + ' R'
 
+
             end_date = pd.to_datetime(datetime.today())
             start_date_mtd = pd.to_datetime(datetime.today().replace(day=1))
             start_date_ytd = pd.to_datetime(datetime.today().replace(month=1, day=1))
-            start_date_3m = pd.to_datetime(datetime.today()-timedelta(90))
-            start_date_6m = pd.to_datetime(datetime.today()-timedelta(180))
-            start_date_9m = pd.to_datetime(datetime.today()-timedelta(270))
+            start_date_3m = pd.to_datetime(datetime.today() - timedelta(90))
+            start_date_6m = pd.to_datetime(datetime.today() - timedelta(180))
+            start_date_9m = pd.to_datetime(datetime.today() - timedelta(270))
 
             month_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
             year_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
@@ -766,17 +706,16 @@ if screen == 'Journal':
             one, two, three = st.columns([1, 6, 1])
             with two:
                 journal_full = journal_full.style.format({'Entry': '{0:.2f}',
-                                                         'EntryFilled': '{0:.2f}',
-                                                         'Qty': '{0:.2f}',
-                                                         'Stop': '{0:.2f}',
-                                                         'Target': '{0:.2f}',
-                                                         'Exit': '{0:.2f}',
-                                                         'ExitFilled': '{0:.2f}',
-                                                         'Comm': '{0:.2f}',
-                                                         'PnL': '{0:.2f} R'},
-                                                        na_rep='N/A')
+                                                          'EntryFilled': '{0:.2f}',
+                                                          'Qty': '{0:.2f}',
+                                                          'Stop': '{0:.2f}',
+                                                          'Target': '{0:.2f}',
+                                                          'Exit': '{0:.2f}',
+                                                          'ExitFilled': '{0:.2f}',
+                                                          'Comm': '{0:.2f}',
+                                                          'PnL': '{0:.2f} R'},
+                                                         na_rep='N/A')
                 st.dataframe(journal_full, height=500)
-
 
     if select_view == 'List':
         one, two, three = st.columns([1, 3, 1])
@@ -796,7 +735,8 @@ if screen == 'Journal':
                     pnl = journal_full.at[i, 'PnL']
 
                     record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
-                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P&L"}, axis='columns')
+                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P&L"},
+                                           axis='columns')
 
                     if np.isnan(pnl):
                         label = f"{i_int}. {symbol} {direction} - In Progress"
@@ -809,15 +749,15 @@ if screen == 'Journal':
                         ['Date Open', 'Date Close', 'Symbol', 'L/S', 'Qty', "Entry'", 'Stop', 'Target',
                          "Exit'", 'P&L', 'Signal']]
                     record = record.assign(hack='').set_index('hack')
-                    my_expander = st.expander(label=label)
-                    with my_expander:
+                    record_expander = st.expander(label=label)
+                    with record_expander:
                         st.table(record.style.format({"Entry'": '{0:.2f}',
                                                       'Qty': '{0:.2f}',
                                                       'Stop': '{0:.2f}',
                                                       'Target': '{0:.2f}',
                                                       "Exit'": '{0:.2f}',
                                                       'P&L': '{0:.2f} R'},
-                                                      na_rep='N/A'))
+                                                     na_rep='N/A'))
 
                         comment = journal_cmt.at[i_int - 1, 'Comment']
                         if comment == None:
@@ -879,17 +819,21 @@ if screen == 'Journal':
 
 if screen == 'Reports':
     mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
-    
+    stock_analysis = run_query(REPORT_DB, "SELECT * FROM stock_analysis")
+    mkt_report_updated = run_query(REPORT_DB, "SELECT * FROM updated")
+    today_date = mkt_report_updated.iat[0, 0]
+
     one, two, three = st.columns([1, 6, 1])
     with two:
         # Open orders
         '---'
-        report_select = st.radio("", options = [f'Market Report - {today_date}', 'Sectors'])
-        
-    if report_select == f'Market Report - {today_date}':
-        one,two,three,four = st.columns([1,3,3,1])
+        mkt_report_tab = f'Market Report - {today_date} '
+        report_select = st.radio('Select report:', options=[mkt_report_tab, 'US Sectors'])
+
+    if report_select == mkt_report_tab:
+
         bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
-            x=alt.X('Symbol', sort=mkt_report['Symbol'].to_list(), axis=alt.Axis(title='')),
+            x=alt.X('Market', sort=mkt_report['Market'].to_list(), axis=alt.Axis(title='', labelAngle = -45)),
             y=alt.Y('SSpike', axis=alt.Axis(title='Sigma Spike')),
             color=alt.condition(
                 alt.datum.SSpike > 0,
@@ -899,23 +843,199 @@ if screen == 'Reports':
         ).configure_view(strokeWidth=0)
 
         mkt_report = mkt_report.set_index('Symbol')
+
+        one, two, four = st.columns([1, 6, 1])
+        with two:
+            st.subheader('Market Review')
+
+        one, two, three, four = st.columns([1, 3, 3, 1])
         with two:
             st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
-                                                  'Change': '{0:.2f}',
-                                                  '%Change': '{0:.2f}',
-                                                  'SSpike': '{0:.2f}',
-                                                  'Kpos': '{0:.2f}',
-                                                  'YrRange': '{0:.2f}'},
-                                                 na_rep = 'N/A'))
+                                                       'Change': '{0:.2f}',
+                                                       '%Change': '{0:.2f}',
+                                                       'SSpike': '{0:.2f}',
+                                                       'Kpos': '{0:.2f}',
+                                                       'YrRange': '{0:.2f}'},
+                                                      na_rep='N/A'))
         with three:
             st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
-                                                  'Change': '{0:.2f}',
-                                                  '%Change': '{0:.2f} %',
-                                                  'SSpike': '{0:.2f}',
-                                                  'Kpos': '{0:.2f}',
-                                                  'YrRange': '{0:.2f}'},
-                                                 na_rep = 'N/A'))
+                                                       'Change': '{0:.2f}',
+                                                       '%Change': '{0:.2f} %',
+                                                       'SSpike': '{0:.2f}',
+                                                       'Kpos': '{0:.2f}',
+                                                       'YrRange': '{0:.2f}'},
+                                                      na_rep='N/A'))
 
         one, two, three = st.columns([1, 6, 1])
         with two:
             st.altair_chart(bar_chart, use_container_width=True)
+            st.subheader('Stock Analysis')
+
+        one, two, three, four, five = st.columns([1, 3, 1.5, 1.5, 1])
+        with two:
+            st.text(f"Looking at {stock_analysis['Total'].iloc[0]} US tickers")
+            stock_analysis = stock_analysis.set_index('L/S')
+
+            sigma_spike_df = stock_analysis[['SS1', 'SS2', 'SS3', 'SS4', 'SS5', 'SS5plus']]
+            ss_up = px.pie(values=sigma_spike_df.values.tolist()[0], names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'], color_discrete_sequence=px.colors.sequential.Greens_r)
+            ss_down = px.pie(values=sigma_spike_df.values.tolist()[1], names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'], color_discrete_sequence=px.colors.sequential.Reds_r)
+            ss_up.update_traces(sort=False)
+            ss_down.update_traces(sort=False)
+            ss_up.update_layout(margin = dict(l=0,r=0,t=0,b=0), width= 300, height =300)
+            ss_down.update_layout(margin = dict(l=0,r=0,t=0,b=0), width= 300, height =300)
+
+            advance_decline = stock_analysis[['A/D']]
+            total_advance_decline = advance_decline['A/D'].sum()
+            total_advance = advance_decline.at['Long','A/D']
+            total_decline = advance_decline.at['Short','A/D']
+            advance_decline = advance_decline.T.reset_index()
+            advance_decline_chart = px.bar(advance_decline, x = ['Long', 'Short'], y = 'index', barmode = 'stack', color_discrete_sequence =['green','red'])
+            advance_decline_chart.add_annotation(x=0, y=1,
+                                                   text= f"{total_advance} Advancing",
+                                                   showarrow=False,
+                                                   yshift=5)
+            advance_decline_chart.add_annotation(x=0, y=1,
+                                                   text=f"{round(total_advance/(total_advance_decline) * 100,2)}%",
+                                                   showarrow=False,
+                                                   yshift=-23, xshift= 23, font=dict(color = 'white'))
+            advance_decline_chart.add_annotation(x=total_advance_decline , y=1,
+                                                   text= f"{total_decline} Declining",
+                                                   showarrow=False,
+                                                   yshift=5)
+            advance_decline_chart.add_annotation(x=total_advance_decline , y=1,
+                                                   text=f"{round(total_decline/(total_advance_decline) * 100,2)}%",
+                                                   showarrow=False,
+                                                   yshift=-23, xshift= -23, font=dict(color = 'white'))
+            advance_decline_chart.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=50,
+                                                  showlegend = False, plot_bgcolor = 'white',
+                                                  hovermode =False,
+                                                  xaxis={'visible': False, 'showticklabels': False, 'fixedrange' : True},
+                                                  yaxis={'visible': False, 'showticklabels': False, 'fixedrange' : True})
+
+            close_up_down = stock_analysis[['Up/Down']]
+            total_close_up_down = close_up_down['Up/Down'].sum()
+            total_up = close_up_down.at['Long', 'Up/Down']
+            total_down = close_up_down.at['Short', 'Up/Down']
+            close_up_down = close_up_down.T.reset_index()
+            close_up_down_chart = px.bar(close_up_down, x = ['Long', 'Short'], y = 'index', barmode = 'stack', color_discrete_sequence =['green','red'])
+            close_up_down_chart.add_annotation(x=0, y=1,
+                                                 text=f"{total_up} Closed ↑",
+                                                 showarrow=False,
+                                                 yshift=5)
+            close_up_down_chart.add_annotation(x=0, y=1,
+                                                 text=f"{round(total_up/(total_close_up_down) * 100,2)}%",
+                                                 showarrow=False,
+                                                 yshift=-23, xshift= 23, font=dict(color = 'white'))
+            close_up_down_chart.add_annotation(x=total_close_up_down, y=1,
+                                                 text=f"{total_down} Closed ↓",
+                                                 showarrow=False,
+                                                 yshift=5)
+            close_up_down_chart.add_annotation(x=total_close_up_down, y=1,
+                                                 text=f"{round(total_down/(total_close_up_down) * 100,2)}%",
+                                                 showarrow=False,
+                                                 yshift=-23, xshift= -23, font=dict(color = 'white'))
+            close_up_down_chart.layout.xaxis.fixedrange = True
+            close_up_down_chart.layout.yaxis.fixedrange = True
+            close_up_down_chart.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=50,
+                                                showlegend=False, plot_bgcolor='white',
+                                                hovermode=False,
+                                                xaxis={'visible': False, 'showticklabels': False, 'fixedrange' : True},
+                                                yaxis={'visible': False, 'showticklabels': False, 'fixedrange' : True})
+
+            new_high_low = stock_analysis[['NewH/L']]
+            total_new_high_low = new_high_low['NewH/L'].sum()
+            total_new_high = new_high_low.at['Long', 'NewH/L']
+            total_new_low = new_high_low.at['Short', 'NewH/L']
+            new_high_low = new_high_low.T.reset_index()
+            new_high_low_chart = px.bar(new_high_low, x = ['Long', 'Short'], y = 'index', barmode = 'stack', color_discrete_sequence =['green','red'])
+            new_high_low_chart.add_annotation(x=0, y=1,
+                                               text=f"{total_new_high} New High",
+                                               showarrow=False,
+                                               yshift=5)
+            new_high_low_chart.add_annotation(x=total_new_high_low, y=1,
+                                               text=f"{total_new_low} New Low",
+                                               showarrow=False,
+                                               yshift=5)
+            new_high_low_chart.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=50,
+                                              showlegend=False, plot_bgcolor='white',
+                                              hovermode=False,
+                                              xaxis={'visible': False, 'showticklabels': False, 'fixedrange': True},
+                                              yaxis={'visible': False, 'showticklabels': False, 'fixedrange': True})
+
+
+
+            st.plotly_chart(advance_decline_chart, use_container_width=True)
+            st.plotly_chart(close_up_down_chart, use_container_width=True)
+            st.plotly_chart(new_high_low_chart, use_container_width=True)
+        with three:
+            st.text('Long sigma distribution')
+            st.plotly_chart(ss_up, use_container_width=True)
+        with four:
+            st.text('Short sigma distribution')
+            st.plotly_chart(ss_down, use_container_width=True)
+
+
+    if report_select == 'US Sectors':
+        sector_list = ['SPY', 'XLE', 'XLI', 'XLK', 'XLY', 'XLF',
+                       'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
+        beta_list = []
+        matrix = pd.DataFrame()
+        corr_matrix = pd.DataFrame()
+        std_dev = pd.DataFrame()
+
+        one, two, three, four = st.columns([1, 1, 5, 1])
+        with two:
+            options = st.radio('Select period:', options=['1 M', '3 M', '6 M', '1 Y'],
+                               help='1 month = 21 trading days')
+            if options == '1 M':
+                period = 21
+            elif options == '3 M':
+                period = 63
+            elif options == '6 M':
+                period = 126
+            elif options == '1 Y':
+                period = 252
+
+        # Translation table
+        with three:
+            sector_name = ['S&P 500', 'Energy', 'Industrial', 'Technology', 'Consumer Disc.',
+                           'Financial', 'Materials', 'Consumer Staples', 'Health Care', 'Utilities',
+                           'Real Estate', 'Communications', 'Russell 2000', 'QQQ Trust']
+            sector_trans = pd.DataFrame(data=sector_name, columns=[
+                'Name'], index=sector_list)
+            sector_trans = sector_trans.T
+            sector_trans = sector_trans.assign(hack='').set_index('hack')
+            st.table(sector_trans)
+
+        # Correlation table
+        one, two, three = st.columns([1, 6, 1])
+        with two:
+            spy = run_query_cached(
+                PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+            spy['return%'] = spy['Close'].pct_change(1) * 100
+            spy = spy.tail(period)
+            spy['var'] = spy['return%'].var()
+            for i in range(0, len(sector_list)):
+                sector = run_query_cached(
+                    PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
+                sector['return%'] = sector['Close'].pct_change(1) * 100
+                sector = sector.tail(period)
+                matrix[f'{sector_list[i]}'] = sector['return%'].values
+                corr_matrix = matrix.corr()
+
+                sector['bm_return%'] = spy['return%'].to_list()
+                cov_df = sector[['return%', "bm_return%"]].cov()
+                bm_var = spy.iloc[-1]['var']
+                beta = cov_df.iloc[1, 0] / bm_var
+                beta_list.append(beta)
+
+            temp = pd.DataFrame(index=sector_list)
+            temp['Beta'] = beta_list
+            temp = temp.T
+            corr_matrix = corr_matrix.append(temp)
+            u = corr_matrix.index.get_level_values(0)
+            corr_matrix = corr_matrix.style.background_gradient(cmap='Oranges', axis=None, low=-0.5,
+                                                                subset=pd.IndexSlice[u[:-1], :])
+            corr_matrix = corr_matrix.background_gradient(
+                cmap='Greens', axis=None, subset=pd.IndexSlice[u[-1], :])
+            st.table(corr_matrix.format(precision=2))
