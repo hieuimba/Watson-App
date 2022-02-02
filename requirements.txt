@@ -3,4 +3,5 @@ sqlalchemy
 pandas
 ta
 matplotlib
+plotly
 streamlit
