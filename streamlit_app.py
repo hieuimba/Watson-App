@@ -832,7 +832,6 @@ if screen == 'Reports':
         report_select = st.radio('Select report:', options=[mkt_report_tab, 'US Sectors'])
 
     if report_select == mkt_report_tab:
-
         bar_chart = alt.Chart(mkt_report).mark_bar(size=10).encode(
             x=alt.X('Market', sort=mkt_report['Market'].to_list(), axis=alt.Axis(title='', labelAngle = -45)),
             y=alt.Y('SSpike', axis=alt.Axis(title='Sigma Spike')),
@@ -847,7 +846,7 @@ if screen == 'Reports':
 
         one, two, four = st.columns([1, 6, 1])
         with two:
-            st.subheader('Market Review')
+            st.subheader('Broad Market Review')
 
         one, two, three, four = st.columns([1, 3, 3, 1])
         with two:
