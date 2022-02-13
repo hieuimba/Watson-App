@@ -9,7 +9,9 @@ import pandas as pd
 import numpy as np
 from ta import volatility
 import altair as alt
+
 import plotly.express as px
+import plotly.graph_objects as go
 
 from PIL import Image
 from datetime import datetime, timedelta
