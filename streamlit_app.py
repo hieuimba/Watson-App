@@ -28,9 +28,10 @@ DB_HOST = st.secrets['db_host']
 DB_USER = st.secrets['db_user']
 DB_PASSWORD = st.secrets['db_password']
 TRADINGVIEW = 'html/tradingview.html'
-TRADINGVIEW_WATCHLIST = 'html/tradingview_watchlist.html'
 JOURNAL_PASSWORD = st.secrets['journal_password']
-today = (datetime.today() - timedelta(hours=5)).strftime('%Y-%m-%d')
+
+today = datetime.today() - timedelta(hours=0)
+today_string = today.strftime('%Y-%m-%d')
 
 # ----------LAYOUT SETUP----------
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
@@ -58,7 +59,6 @@ def get_earnings(api_key, horizon, symbol=None):
 def connect_db(database):
     return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle=7200)
 
-
 @st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=3600)
 def run_query_cached(connection, query, index_col=None):
     return pd.read_sql_query(query, connection, index_col)
@@ -71,12 +71,82 @@ def run_query(connection, query, index_col=None):
 def run_command(connection, query):
     connection.execute(query)
 
-
 POSITIONS_DB = connect_db('positions')
 PRICES_DB = connect_db('prices')
 JOURNAL_DB = connect_db('journal')
 REPORT_DB = connect_db('report')
 
+# ----------PLOTLY TABLES---------
+from plotly.colors import n_colors
+def create_table(df, suffix = None, col_width = None, align = 'left', heatmap = False, exclude = 2):
+    header_height = 30
+    cell_height = 30
+    green = 'rgb(144,238,144)'
+    yellow = 'rgb(255,255,224)'
+    red = 'rgb(240,128,128)'
+    watson = 'rgba(120, 0, 62, 1)'
+    cell_list_list = []
+    color_list = []
+
+    for col in df.reset_index().transpose().values.tolist():
+        cell_list = []
+        cell_color = []
+        for cell in col:
+            try:
+                cell_list.append(np.round(cell, 2))
+            except:
+                cell_list.append(cell)
+        if heatmap == True:
+            colors_low = n_colors(green, yellow, 51, colortype='rgb')
+            colors_high = n_colors(yellow, red, 51, colortype='rgb')
+            if all(isinstance(cell, float) for cell in cell_list):
+                for cell in cell_list[:-exclude]:
+                    cell = cell * 100
+                    cell_int = abs(int(cell))
+                    if cell_int == 100:
+                        cell_color.append(watson)
+                    elif cell_int <= 50:
+                        cell_color.append(colors_low[cell_int])
+                    elif 50 < cell_int:
+                        cell_color.append(colors_high[cell_int-50])
+                for cell in cell_list[-exclude:]:
+                    cell_color.append('white')
+            elif all(isinstance(cell, str) for cell in cell_list):
+                cell_color = ['white' for cell in cell_list]
+        else:
+            cell_color = ['white' for cell in cell_list]
+        color_list.append(cell_color)
+        cell_list_list.append(cell_list)
+
+    header = ['' if wd == 'index' else wd for wd in list(df.reset_index().columns)]
+    fig = go.Figure(data=[go.Table(
+        columnwidth=col_width,
+        header=dict(values=header,
+                    fill_color=watson,
+                    line_color='dimgrey',
+                    align='left',
+                    height=header_height,
+                    font=dict(color='white', size=15)),
+        cells=dict(values=cell_list_list,
+                   fill_color=color_list,
+                   line_color='dimgrey',
+                   align=align,
+                   suffix=suffix,
+                   height=cell_height,
+                   font=dict(size=15)))
+    ])
+    def calc_table_height(df, base=header_height, height_per_row=cell_height, char_limit=30,
+                          height_padding=cell_height):
+        total_height = 0 + base
+        for x in range(df.shape[0]):
+            total_height += height_per_row
+        for y in range(df.shape[1]):
+            if len(str(df.iloc[x][y])) > char_limit:
+                total_height += height_padding
+        return total_height + 30
+    #st.write(calc_table_height(df))
+    fig.update_layout(margin=dict(l=1, r=1, t=0, b=0), height=calc_table_height(df))
+    return fig
 
 # ----------PREMARKET-------------
 def is_in_time_period(start_time, end_time, now_time):
@@ -86,9 +156,8 @@ def is_in_time_period(start_time, end_time, now_time):
         # Over midnight:
         return now_time >= start_time or now_time <= end_time
 
-
 pre_market = is_in_time_period(
-    dt.time(13, 00), dt.time(13, 30), dt.datetime.now().time())
+    dt.time(8, 00), dt.time(8, 30), dt.datetime.now().time())
 
 ##---------------------------------------------DASHBOARD -------------------------------------------------------------##
 # ----------HEADER----------------
@@ -102,7 +171,7 @@ one, two, three, four = st.columns([1, 0.25, 2.75, 1])
 with two:
     st.image(page_icon)
 with three:
-    st.text("")
+    st.write("")
     st.caption(f'Updated: {updated.iat[0, 0]}')
 
 one, two, three = st.columns([1, 3, 1])
@@ -149,92 +218,87 @@ if screen == 'Positions':
     open_positions['Rlzd P&L'] /= RISK
     open_positions['Unrlzd P&L'] /= RISK
     open_positions['Open Risk'] /= RISK
+    open_positions = open_positions.sort_values(
+        by='Unrlzd P&L', ascending=False)
+    open_positions = open_positions.drop(columns=['Qty'])
+    open_positions = open_positions.rename(columns={"Rlzd P&L": "Rlzd P/L", "Unrlzd P&L": "Unrlzd P/L"})
 
     # Format closed positions table
     closed_positions['Rlzd P&L'] /= RISK
     closed_positions['Unrlzd P&L'] /= RISK
+    closed_positions = closed_positions.sort_values(
+        by='Rlzd P&L', ascending=False)
+    closed_positions = closed_positions.drop(columns=['Qty'])
+    closed_positions = closed_positions.rename(columns={"Rlzd P&L": "Rlzd P/L", "Unrlzd P&L": "Unrlzd P/L"})
 
     # Positions summary
-
     one, two, three = st.columns([1, 3, 1])
     with two:
         '---'
-    one, two, three, four = st.columns([4, 9, 3, 4])
+    one, two, three, four = st.columns([1, 4.5/2, 1.5/2, 1])
     with two:
-        st.header(f'Current P&L: {total_pnl}')
-        st.text(f'Unrealized: {unrealized_pnl}')
-        st.text(f'Realized: {realized_pnl}')
+        st.subheader(f'Current P&L: {total_pnl}')
+        st.write(f'Unrealized: {unrealized_pnl}')
+        st.write(f'Realized: {realized_pnl}')
     with three:
-        st.header('Risk:')
-        st.text(f'Total open risk: {total_open_risk}')
+        st.subheader('Risk:')
+        st.write(f'Total open risk: {total_open_risk}')
+        st.write(f'Expected Shortfall: N/A')
+        #st.write(f'Portfolio Variance: N/A')
 
     # Positions tables
-
     one, two, three = st.columns([1, 3, 1])
     with two:
         '---'
-        open_positions = open_positions.sort_values(
-            by='Unrlzd P&L', ascending=False)
-        open_positions = open_positions.drop(columns=['Qty'])
-        st.text(f'{len(open_positions)} trade in progress...' if len(open_positions) == 1 else
-                f'{len(open_positions)} trades in progress...')
-        st.table(open_positions.style.set_table_styles([{'selector': '',
-                                                         'props': [('border',
-                                                                    '1px solid white')]}]).format({'Qty': '{0:.2f}',
-                                                                                                   'Entry': '{0:.2f}',
-                                                                                                   'Last': '{0:.2f}',
-                                                                                                   'Stop': '{0:.2f}',
-                                                                                                   'Target': '{0:.2f}',
-                                                                                                   'Unrlzd P&L': '{0:.2f} R',
-                                                                                                   'Rlzd P&L': '{0:.2f} R',
-                                                                                                   'Open Risk': '{0:.2f} R'},
-                                                                                                  na_rep='N/A'))
+        st.write(f'{len(open_positions)} trade in progress' if len(open_positions) == 1 else
+                 f'{len(open_positions)} trades in progress')
+        if len(open_positions) > 0:
+            open_posisions_table = create_table(open_positions,
+                                                suffix = ['','','','','','',' R',' R','R'],
+                                                align = ['left']*2 + ['right']*6)
+            st.plotly_chart(open_posisions_table, use_container_width=True, config = {'staticPlot': True})
+
         if len(closed_positions) > 0:
-            closed_positions = closed_positions.sort_values(
-                by='Rlzd P&L', ascending=False)
-            closed_positions = closed_positions.drop(columns=['Qty'])
-            st.text(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
+            st.write(f'{len(closed_positions)} closed trade' if len(closed_positions) == 1 else
                     f'{len(closed_positions)} closed trades')
-            st.table(closed_positions.style.format({'Qty': '{0:.2f}',
-                                                    'Entry': '{0:.2f}',
-                                                    'Exit': '{0:.2f}',
-                                                    'Stop': '{0:.2f}',
-                                                    'Target': '{0:.2f}',
-                                                    'Unrlzd P&L': '{0:.2f} R',
-                                                    'Rlzd P&L': '{0:.2f} R'},
-                                                   na_rep='N/A'))
+            closed_posisions_table = create_table(closed_positions,
+                                                  suffix=['', '', '', '', '', '', ' R', ' R'],
+                                                  align=['left']*2 + ['right']*6)
+            st.plotly_chart(closed_posisions_table, use_container_width=True, config={'staticPlot': True})
+
+    one, two, three = st.columns([1, 3, 1])
+    with two:
          # TradingView Chart
-        select_chart = list(open_positions.index.values) + \
+        chart_symbols = list(open_positions.index.values) + \
                        list(closed_positions.index.values) + ['SPY']
-        tradingview = open(TRADINGVIEW, 'r', encoding='utf-8')
+        tradingview = open(
+            TRADINGVIEW, 'r', encoding='utf-8')
         source_code = tradingview.read()
+        source_code = source_code.replace('DOW', chart_symbols[0])
+        source_code = source_code.replace("'list'", str(chart_symbols)[1:-1])
+        components.html(source_code, height=700)
 
-        select = st.selectbox('', (select_chart))
-        source_code = source_code.replace('DOW', select)
-        components.html(source_code, height=800)
 
-
-    # Get data
+    # Orders
         order_expander = st.expander(label='Orders')
         with order_expander:
             open_orders = run_query(POSITIONS_DB, "SELECT * FROM open_orders", 'Symbol')
 
             # Open orders
-            st.text(f'{len(open_orders)} open orders')
-            open_orders.drop(columns=['Filled Qty', 'Qty'], inplace=True)
-            open_orders = open_orders[['Action', 'Type', 'Price', 'Status']]
-            st.table(open_orders.style.format({'Price': '{0:.2f}'},
-                                              na_rep='N/A'))
-
+            st.write(f'{len(open_orders)} open orders')
+            if len(open_orders) > 0:
+                open_orders.drop(columns=['Filled Qty', 'Qty'], inplace=True)
+                open_orders = open_orders[['Action', 'Type', 'Price', 'Status']]
+                st.plotly_chart(create_table(open_orders, align=['left']*2 + ['right'] +['left']),
+                                use_container_width=True, config={'staticPlot': True})
             # Closed orders
-            st.text(f'{len(closed_orders)} closed orders')
-            closed_orders.sort_values(by='Status', inplace=True, ascending=False)
-            closed_orders.drop(columns=['Rlzd P&L', 'Filled Qty', 'Qty'], inplace=True)
-            closed_orders = closed_orders[['Action', 'Type', 'Price', 'Filled At', 'Status', 'Time']]
-            st.table(closed_orders.style.format({'Price': '{0:.2f}',
-                                                 'Filled At': '{0:.2f}',
-                                                 'Comm': '{0:.2f}'},
-                                                na_rep='N/A'))
+            st.write(f'{len(closed_orders)} closed orders')
+            if len(closed_orders) > 0:
+                closed_orders.sort_values(by='Status', inplace=True, ascending=False)
+                closed_orders.drop(columns=['Rlzd P&L', 'Filled Qty', 'Qty'], inplace=True)
+                closed_orders = closed_orders[['Action', 'Type', 'Price', 'Filled At', 'Status', 'Time']]
+                st.plotly_chart(create_table(closed_orders, align=['left']*3 + ['right']*2 +['left']*2),
+                                use_container_width=True, config={'staticPlot': True})
 
 # ----------CALC SCREEN-----------
 if screen == 'PSC':
@@ -244,7 +308,7 @@ if screen == 'PSC':
     '---'
     symbol_list = run_query_cached(PRICES_DB, "SELECT * FROM symbol_list")
     etf_list = symbol_list[symbol_list['Sec_Type'] == 'ETF']
-    symbol_list = symbol_list['Symbol'].to_list()
+    symbol_list = sorted(symbol_list['Symbol'].to_list())
     etf_list = etf_list['Symbol'].to_list()
 
     beta_list = []
@@ -266,17 +330,19 @@ if screen == 'PSC':
         direction = 'Long' if distance > 0 else 'Short'
         st.number_input('Target', min_value=target,
                         max_value=target, value=target)
-        st.text(f'Direction: {direction}')
+        st.write(f'Direction: {direction}')
         st.subheader(f'Size: {size} share' if size ==
                                               1 else f'Size: {size} shares')
         ''
-        st.text(f'$ Equivalent: $ {dollar_size}')
+        st.write(f"Cash Equivalent: $ {dollar_size}")
         st.subheader('R table:')
         price_range = [stop, stop + distance / 2, entry,
                        entry + distance / 2, target, entry + distance * 2]
         price_range = pd.DataFrame(price_range, columns=['Price'],
                                    index=['-1 R', '-1.5 R', '0 R', '0.5 R', '1 R', '2 R']).T
-        st.table(price_range.style.format(precision=2))
+        st.plotly_chart(create_table(price_range, align=['left'] + ['right'] * 6),
+                        use_container_width=True, config={'staticPlot': True})
+
     with three:
         options = st.radio('Select period:', options=[
             '1 M', '3 M', '6 M', '1 Y'], help='1 month = 21 trading days')
@@ -291,7 +357,7 @@ if screen == 'PSC':
     with two:
         symbol = st.multiselect('Select symbols:', options=symbol_list,
                                 default=['SPY'] + open_positions.index.values.tolist())
-
+        #st.subheader('Portfolio Correlation')
         spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
         spy['return%'] = spy['Close'].pct_change(1) * 100
         spy = spy.tail(period)
@@ -331,27 +397,24 @@ if screen == 'PSC':
         temp2 = temp2.T
         corr_matrix = corr_matrix.append(temp)
         corr_matrix = corr_matrix.append(temp2)
-        u = corr_matrix.index.get_level_values(0)
-        corr_matrix = corr_matrix.style.background_gradient(cmap='RdYlGn_r', axis=None,
-                                                            subset=pd.IndexSlice[u[:-2], :])
-        # corr_matrix = corr_matrix.background_gradient(cmap = 'White', axis = None, subset = pd.IndexSlice[u[-1], :])
-        st.table(corr_matrix.format(precision=3))
 
-        st.text(
-            f"Symbol: {bars.iloc[-1]['Symbol']},    Name: {bars.iloc[-1]['Name']},    Sector: {bars.iloc[-1]['Sector']}")
-        st.text(
-            f"Last: {bars.iloc[-1]['Close']},    Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
+        matrix_table = create_table(corr_matrix, align=['left'] + ['right'], heatmap = True)
+        st.plotly_chart(matrix_table, use_container_width=True, config={'staticPlot': True})
+
+        st.subheader(f"Ticker Info: {bars.iloc[-1]['Symbol']}")
+        st.write(f"Name: {bars.iloc[-1]['Name']}, Sector: {bars.iloc[-1]['Sector']}")
+        st.write(f"Last: {bars.iloc[-1]['Close']}, Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
         atr = bars.iloc[-1]['ATR']
-        st.text(
+        st.write(
             f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
-        st.text(
+        st.write(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
         try:
             if bars.iloc[-1]['Symbol'] not in etf_list:
                 earnings = get_earnings(
                     API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
                 days_to_earnings = np.busday_count(
-                    datetime.today().strftime("%Y-%m-%d"), earnings) + 1
+                    today_string, earnings) + 1
             else:
                 earnings = 'N/A'
                 days_to_earnings = 'N/A'
@@ -359,11 +422,11 @@ if screen == 'PSC':
             earnings = 'Error'
             days_to_earnings = 'Error'
 
-        st.text(
+        st.write(
             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today}', '{earnings}', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
             run_command(POSITIONS_DB, add_cmd)
             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
@@ -389,32 +452,28 @@ if screen == 'Watchlist':
         setting_up = all[setting_up_boolean]
         inbox = pullback[pullback['Entry'].isna()]
 
-        watchlist_type = st.radio("", ("Inbox", "Setting Up", "In Progress", "All"), index=1)
-        if watchlist_type == "All":
-            st.table(all.style.format({'Qty': '{0:.2f}',
-                                       'Entry': '{0:.2f}',
-                                       'Stop': '{0:.2f}',
-                                       'Target': '{0:.2f}'},
-                                      na_rep='N/A'))
-        if watchlist_type == "In Progress":
-            st.table(in_progress.style.format({'Qty': '{0:.2f}',
-                                               'Entry': '{0:.2f}',
-                                               'Stop': '{0:.2f}',
-                                               'Target': '{0:.2f}'},
-                                              na_rep='N/A'))
-        if watchlist_type == "Setting Up":
+        watchlist_type = st.radio("Select watchlist:", ("Inbox", "Setting Up", "In Progress", "All"), index=1)
+        if watchlist_type == "All" and len(all) > 0:
+            all_table = create_table(all,
+                                     col_width = [20, 18, 18, 18, 18, 25, 25],
+                                     align=['left','left'] + ['right']*5)
+            st.plotly_chart(all_table, use_container_width=True, config={'staticPlot': True})
+        if watchlist_type == "In Progress" and len(in_progress) > 0:
+            in_progress_table = create_table(in_progress,
+                                     col_width = [20, 18, 18, 18, 18, 25, 25],
+                                     align=['left','left'] + ['right']*5)
+            st.plotly_chart(in_progress_table, use_container_width=True, config={'staticPlot': True})
+        if watchlist_type == "Setting Up" and len(setting_up) > 0:
             setting_up = setting_up[setting_up['Entry'].notna()]
-            st.table(setting_up.style.format({'Qty': '{0:.2f}',
-                                              'Entry': '{0:.2f}',
-                                              'Stop': '{0:.2f}',
-                                              'Target': '{0:.2f}'},
-                                             na_rep='N/A'))
-        if watchlist_type == "Inbox":
-            st.table(inbox.style.format({'Qty': '{0:.2f}',
-                                         'Entry': '{0:.2f}',
-                                         'Stop': '{0:.2f}',
-                                         'Target': '{0:.2f}'},
-                                        na_rep='N/A'))
+            setting_up_table = create_table(setting_up,
+                                     col_width = [20, 18, 18, 18, 18, 25, 25],
+                                     align=['left','left'] + ['right']*5)
+            st.plotly_chart(setting_up_table, use_container_width=True, config={'staticPlot': True})
+        if watchlist_type == "Inbox" and len(inbox) > 0:
+            inbox_table = create_table(inbox,
+                                     col_width = [20, 18, 18, 18, 18, 25, 25],
+                                     align=['left','left'] + ['right']*5)
+            st.plotly_chart(inbox_table, use_container_width=True, config={'staticPlot': True})
 
         user_input = st.text_input("Add, Modify, Delete")
         st.caption('Clear input when done')
@@ -450,7 +509,7 @@ if screen == 'Watchlist':
                         earnings = 'N/A'
                     variable.append(target)
                     variable.append('pullback')
-                    variable.append(today)
+                    variable.append(today_string)
                     variable.append(earnings)
                     variable.append(size)
                     add_cmd = f"INSERT INTO watchlist VALUES ('{symbol}', '{variable[1]}', {entry}, {stop}, '{target}', '{variable[5]}', '{variable[6]}', '{variable[7]}', '{variable[8]}')"
@@ -523,14 +582,14 @@ if screen == 'Watchlist':
             selections = str(selections)[1:-1]
 
             tradingview = open(
-                TRADINGVIEW_WATCHLIST, 'r', encoding='utf-8')
+                TRADINGVIEW, 'r', encoding='utf-8')
             source_code = tradingview.read()
             source_code = source_code.replace("'list'", selections)
             source_code = source_code.replace(
                 'DOW', pullback.index.values.tolist()[0])
             components.html(source_code, height=800)
         else:
-            st.text('Watchlist is empty')
+            st.write('Watchlist is empty')
 
 # ----------JOURNAL---------------
 if screen == 'Journal':
@@ -556,9 +615,10 @@ if screen == 'Journal':
             n = 25
         if last_n_trade == '10 trades':
             n = 10
+        journal_full = journal_full[::-1].head(n)
 
     if select_view == 'Summary':
-        one, two, three = st.columns([1, 3, 1])
+        one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
             password = text_input_container.text_input("Enter password", type="password")
@@ -566,9 +626,8 @@ if screen == 'Journal':
         if password == JOURNAL_PASSWORD:
             text_input_container.empty()
 
-            journal_full = journal_full[::-1].drop(columns=['Signal'])
+            journal_full = journal_full.drop(columns=['Signal'])
             journal_full = journal_full.dropna()
-            journal_full = journal_full.head(n)
             journal_full = journal_full.reset_index()
 
             one, two, three, four = st.columns([1, 2, 4, 1])
@@ -581,7 +640,7 @@ if screen == 'Journal':
             with two:
                 bar_chart = alt.Chart(journal_full).mark_bar(size=5).encode(
                     x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
-                    y=alt.Y('PnL', axis=alt.Axis(title='P&L')),
+                    y=alt.Y('PnL', axis=alt.Axis(title='P/L')),
                     color=alt.condition(
                         alt.datum.PnL > 0,
                         alt.value('green'),
@@ -614,12 +673,12 @@ if screen == 'Journal':
 
                 expectancy = round(win_rate * avg_win + (1 - win_rate) * avg_loss, 2)
 
-                st.text(f'Average gain/loss: {expectancy} R')
-                st.text(f'Win rate: {win_percentage} %')
-                st.text(f'Average winning trade: {avg_win} R')
-                st.text(f'Average losing trade: {avg_loss} R')
-                st.text(f'Number of winning trades: {win_count}')
-                st.text(f'Number of losing trades: {loss_count}')
+                st.write(f'Average gain/loss: {expectancy} R')
+                st.write(f'Win rate: {win_percentage} %')
+                st.write(f'Average winning trade: {avg_win} R')
+                st.write(f'Average losing trade: {avg_loss} R')
+                st.write(f'Number of winning trades: {win_count}')
+                st.write(f'Number of losing trades: {loss_count}')
             with three:
                 win_max = journal_full['PnL'].max()
                 loss_max = journal_full['PnL'].min()
@@ -636,13 +695,13 @@ if screen == 'Journal':
                 max_con_win = win_filter['streak_counter'].max()
                 max_con_loss = loss_filter['streak_counter'].max()
 
-                st.text(f'Profit factor: {profit_factor}')
-                st.text(f'Trade P&L standard deviation: {std_dev} R')
-                st.text(f'Largest gain: {win_max} R')
-                st.text(f'Largest loss: {loss_max} R')
+                st.write(f'Profit factor: {profit_factor}')
+                st.write(f'Trade P&L standard deviation: {std_dev} R')
+                st.write(f'Largest gain: {win_max} R')
+                st.write(f'Largest loss: {loss_max} R')
 
-                st.text(f'Max consecutive wins: {max_con_win}')
-                st.text(f'Max consecutive loss: {max_con_loss}')
+                st.write(f'Max consecutive wins: {max_con_win}')
+                st.write(f'Max consecutive loss: {max_con_loss}')
             with four:
                 total_commission = round(journal_full['Comm'].sum() / RISK, 2)
 
@@ -655,13 +714,19 @@ if screen == 'Journal':
                 journal_full['Slippage'] = np.select(conditions, values)
                 total_slippage = round(journal_full['Slippage'].sum() / RISK, 2)
 
-                st.text(f'Average Holding Time: N/A')
-                st.text(f'Total commission: {total_commission} R')
-                st.text(f'Total slippage: {total_slippage} R')
+                st.write(f'Average Holding Time: N/A')
+                st.write(f'Total commission: {total_commission} R')
+                st.write(f'Total slippage: {total_slippage} R')
+        elif password == "":
+            pass
+        else:
+            one, two, three = st.columns([1, 6, 1])
+            with two:
+                st.error("Incorrect password")
 
     if select_view == 'Table':
-        journal_full = journal_full[::-1].drop(columns=['Signal'])
-        one, two, three = st.columns([1, 3, 1])
+        journal_full = journal_full.drop(columns=['Signal'])
+        one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
             password = text_input_container.text_input("Enter password", type="password")
@@ -672,7 +737,6 @@ if screen == 'Journal':
             total_pnl = journal_full['PnL'].sum()
             total_pnl = format(total_pnl, '.2f') + ' R'
 
-
             def get_pnl_between_two_dates(start_date, end_date):
                 after_start_date = journal_full['Date Close'] >= start_date
                 before_end_date = journal_full['Date Close'] <= end_date
@@ -681,13 +745,12 @@ if screen == 'Journal':
                 pnl = filter['PnL'].sum()
                 return format(pnl, '.2f') + ' R'
 
-
-            end_date = pd.to_datetime(datetime.today())
-            start_date_mtd = pd.to_datetime(datetime.today().replace(day=1))
-            start_date_ytd = pd.to_datetime(datetime.today().replace(month=1, day=1))
-            start_date_3m = pd.to_datetime(datetime.today() - timedelta(90))
-            start_date_6m = pd.to_datetime(datetime.today() - timedelta(180))
-            start_date_9m = pd.to_datetime(datetime.today() - timedelta(270))
+            end_date = pd.to_datetime(today)
+            start_date_mtd = pd.to_datetime(today.replace(day=1))
+            start_date_ytd = pd.to_datetime(today.replace(month=1, day=1))
+            start_date_3m = pd.to_datetime(today - timedelta(90))
+            start_date_6m = pd.to_datetime(today - timedelta(180))
+            start_date_9m = pd.to_datetime(today - timedelta(270))
 
             month_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
             year_to_date_pnl = get_pnl_between_two_dates(start_date_mtd, end_date)
@@ -698,28 +761,25 @@ if screen == 'Journal':
             one, two, three, four = st.columns([1, 1.5, 4.5, 1])
             with two:
                 st.subheader(f'Month-to-Date: {month_to_date_pnl}')
-                st.text(f'Year-to-Date: {year_to_date_pnl}')
-                st.text(f'Total: {total_pnl}')
+                st.write(f'Year-to-Date: {year_to_date_pnl}')
+                st.write(f'Total: {total_pnl}')
             with three:
                 st.subheader(f'3 Month: {three_month_pnl}')
-                st.text(f'6 Month: {six_month_pnl}')
-                st.text(f'9 Month: {nine_month_pnl}')
+                st.write(f'6 Month: {six_month_pnl}')
+                st.write(f'9 Month: {nine_month_pnl}')
             one, two, three = st.columns([1, 6, 1])
             with two:
-                journal_full = journal_full.style.format({'Entry': '{0:.2f}',
-                                                          'EntryFilled': '{0:.2f}',
-                                                          'Qty': '{0:.2f}',
-                                                          'Stop': '{0:.2f}',
-                                                          'Target': '{0:.2f}',
-                                                          'Exit': '{0:.2f}',
-                                                          'ExitFilled': '{0:.2f}',
-                                                          'Comm': '{0:.2f}',
-                                                          'PnL': '{0:.2f} R'},
-                                                         na_rep='N/A')
-                st.dataframe(journal_full, height=500)
+                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*9)
+                st.plotly_chart(journal_full_table, use_container_width=True, config={'staticPlot': True})
+        elif password == "":
+            pass
+        else:
+            one, two, three = st.columns([1, 6, 1])
+            with two:
+                st.error("Incorrect password")
 
     if select_view == 'List':
-        one, two, three = st.columns([1, 3, 1])
+        one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
             password = text_input_container.text_input("Enter password", type="password")
@@ -727,7 +787,7 @@ if screen == 'Journal':
             if password == JOURNAL_PASSWORD:
                 text_input_container.empty()
 
-                for i in reversed(journal_full.index.to_list()):
+                for i in journal_full.index.to_list():
                     i_int = int(float(i))
                     symbol = journal_full.at[i, 'Symbol']
                     direction = journal_full.at[i, 'L/S']
@@ -749,16 +809,14 @@ if screen == 'Journal':
                     record = record[
                         ['Date Open', 'Date Close', 'Symbol', 'L/S', 'Qty', "Entry'", 'Stop', 'Target',
                          "Exit'", 'P&L', 'Signal']]
-                    record = record.assign(hack='').set_index('hack')
+                    #record = record.assign(hack='').set_index('hack')
                     record_expander = st.expander(label=label)
                     with record_expander:
-                        st.table(record.style.format({"Entry'": '{0:.2f}',
-                                                      'Qty': '{0:.2f}',
-                                                      'Stop': '{0:.2f}',
-                                                      'Target': '{0:.2f}',
-                                                      "Exit'": '{0:.2f}',
-                                                      'P&L': '{0:.2f} R'},
-                                                     na_rep='N/A'))
+                        record = record.rename(columns={"P&L": "P/L"})
+                        record_table = create_table(record,
+                                                    col_width=[15, 25, 25]+[20]*9,
+                                                    align=['right'] + ['left', 'left'] + ['right'] * 6)
+                        st.plotly_chart(record_table, use_container_width=True, config={'staticPlot': True})
 
                         comment = journal_cmt.at[i_int - 1, 'Comment']
                         if comment == None:
@@ -782,14 +840,13 @@ if screen == 'Journal':
                                 pass
                             else:
                                 st.error("Incorrect password")
-
             elif password == "":
                 pass
             else:
                 st.error("Incorrect password")
 
     if select_view == 'Gallery':
-        one, two, three = st.columns([1, 3, 1])
+        one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
             password = text_input_container.text_input("Enter password", type="password")
@@ -799,36 +856,37 @@ if screen == 'Journal':
 
             one, two, three, four = st.columns([1, 5, 5, 1])
             with two:
-                for i in reversed(journal_full.index.to_list()):
+                for i in journal_full.index.to_list():
                     i_int = int(float(i))
                     if i_int % 2 == 0:
                         symbol = journal_full.at[i, 'Symbol']
                         st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
                                  use_column_width='auto')
             with three:
-                for i in reversed(journal_full.index.to_list()):
+                for i in journal_full.index.to_list():
                     i_int = int(float(i))
                     if i_int % 2 != 0:
                         symbol = journal_full.at[i, 'Symbol']
                         st.image(f'https://journal-screenshot.s3.ca-central-1.amazonaws.com/{i_int}_{symbol}.png',
                                  use_column_width='auto')
-
         elif password == "":
             pass
         else:
-            st.error("Incorrect password")
+            one, two, three = st.columns([1, 6, 1])
+            with two:
+                st.error("Incorrect password")
 
 if screen == 'Reports':
     mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
     stock_analysis = run_query(REPORT_DB, "SELECT * FROM stock_analysis")
     mkt_report_updated = run_query(REPORT_DB, "SELECT * FROM updated")
-    today_date = mkt_report_updated.iat[0, 0]
+    report_date = mkt_report_updated.iat[0, 0]
 
     one, two, three = st.columns([1, 6, 1])
     with two:
         # Open orders
         '---'
-        mkt_report_tab = f'Market Report - {today_date} '
+        mkt_report_tab = f'Market Report - {report_date} '
         report_select = st.radio('Select report:', options=[mkt_report_tab, 'US Sectors'])
 
     if report_select == mkt_report_tab:
@@ -850,21 +908,17 @@ if screen == 'Reports':
 
         one, two, three, four = st.columns([1, 3, 3, 1])
         with two:
-            st.table(mkt_report.head(14).style.format({'Last': '{0:.2f}',
-                                                       'Change': '{0:.2f}',
-                                                       '%Change': '{0:.2f}',
-                                                       'SSpike': '{0:.2f}',
-                                                       'Kpos': '{0:.2f}',
-                                                       'YrRange': '{0:.2f}'},
-                                                      na_rep='N/A'))
+            mkt_report_table_1 = create_table(mkt_report.head(14),
+                                            suffix=['', '', '', '', ' %', '', '', ''],
+                                            col_width = [50, 100, 50, 50, 50, 50, 50, 50],
+                                            align=['left','left'] + ['right']*6)
+            st.plotly_chart(mkt_report_table_1, use_container_width=True, config = {'staticPlot': True})
         with three:
-            st.table(mkt_report.tail(14).style.format({'Last': '{0:.2f}',
-                                                       'Change': '{0:.2f}',
-                                                       '%Change': '{0:.2f} %',
-                                                       'SSpike': '{0:.2f}',
-                                                       'Kpos': '{0:.2f}',
-                                                       'YrRange': '{0:.2f}'},
-                                                      na_rep='N/A'))
+            mkt_report_table_2 = create_table(mkt_report.tail(14),
+                                            suffix=['', '', '', '', ' %', '', '', ''],
+                                            col_width = [50, 100, 50, 50, 50, 50, 50, 50],
+                                            align=['left','left'] + ['right']*6)
+            st.plotly_chart(mkt_report_table_2, use_container_width=True, config = {'staticPlot': True})
 
         one, two, three = st.columns([1, 6, 1])
         with two:
@@ -873,12 +927,16 @@ if screen == 'Reports':
 
         one, two, three, four, five = st.columns([1, 3, 1.5, 1.5, 1])
         with two:
-            st.text(f"Looking at {stock_analysis['Total'].iloc[0]} US tickers")
+            st.write(f"Looking at {stock_analysis['Total'].iloc[0]} active US tickers")
             stock_analysis = stock_analysis.set_index('L/S')
 
             sigma_spike_df = stock_analysis[['SS1', 'SS2', 'SS3', 'SS4', 'SS5', 'SS5plus']]
-            ss_up = px.pie(values=sigma_spike_df.values.tolist()[0], names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'], color_discrete_sequence=px.colors.sequential.Greens_r)
-            ss_down = px.pie(values=sigma_spike_df.values.tolist()[1], names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'], color_discrete_sequence=px.colors.sequential.Reds_r)
+            ss_up = px.pie(values=sigma_spike_df.values.tolist()[0],
+                           names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'],
+                           color_discrete_sequence=px.colors.sequential.Greens_r)
+            ss_down = px.pie(values=sigma_spike_df.values.tolist()[1],
+                             names = ['< 1', '1-2', '2-3', '3-4', '4-5', '> 5'],
+                             color_discrete_sequence=px.colors.sequential.Reds_r)
             ss_up.update_traces(sort=False)
             ss_down.update_traces(sort=False)
             ss_up.update_layout(margin = dict(l=0,r=0,t=0,b=0), width= 300, height =300)
@@ -958,20 +1016,17 @@ if screen == 'Reports':
                                                yshift=5)
             new_high_low_chart.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=50,
                                               showlegend=False, plot_bgcolor='white',
-                                              hovermode=False,
                                               xaxis={'visible': False, 'showticklabels': False, 'fixedrange': True},
                                               yaxis={'visible': False, 'showticklabels': False, 'fixedrange': True})
 
-
-
-            st.plotly_chart(advance_decline_chart, use_container_width=True)
-            st.plotly_chart(close_up_down_chart, use_container_width=True)
-            st.plotly_chart(new_high_low_chart, use_container_width=True)
+            st.plotly_chart(advance_decline_chart, use_container_width=True, config = {'staticPlot': True})
+            st.plotly_chart(close_up_down_chart, use_container_width=True, config = {'staticPlot': True})
+            st.plotly_chart(new_high_low_chart, use_container_width=True, config = {'staticPlot': True})
         with three:
-            st.text('Long sigma distribution')
+            st.write('Long sigma distribution')
             st.plotly_chart(ss_up, use_container_width=True)
         with four:
-            st.text('Short sigma distribution')
+            st.write('Short sigma distribution')
             st.plotly_chart(ss_down, use_container_width=True)
 
 
@@ -980,9 +1035,13 @@ if screen == 'Reports':
                        'XLB', 'XLP', 'XLV', 'XLU', 'XLRE', 'XLC', 'IWM', 'QQQ']
         beta_list = []
         matrix = pd.DataFrame()
+        corr_table = pd.DataFrame()
         corr_matrix = pd.DataFrame()
         std_dev = pd.DataFrame()
 
+        one, two, thee = st.columns([1, 6, 1])
+        with two:
+            st.subheader('Sector Correlations')
         one, two, three, four = st.columns([1, 1, 5, 1])
         with two:
             options = st.radio('Select period:', options=['1 M', '3 M', '6 M', '1 Y'],
@@ -998,14 +1057,12 @@ if screen == 'Reports':
 
         # Translation table
         with three:
-            sector_name = ['S&P 500', 'Energy', 'Industrial', 'Technology', 'Consumer Disc.',
-                           'Financial', 'Materials', 'Consumer Staples', 'Health Care', 'Utilities',
-                           'Real Estate', 'Communications', 'Russell 2000', 'QQQ Trust']
-            sector_trans = pd.DataFrame(data=sector_name, columns=[
-                'Name'], index=sector_list)
-            sector_trans = sector_trans.T
-            sector_trans = sector_trans.assign(hack='').set_index('hack')
-            st.table(sector_trans)
+            sector_name = ['SPX 500', 'Energy', 'Industrial', 'Tech.', 'Cons Disc.',
+                           'Financial', 'Materials', 'Cons Staples', 'Health Care', 'Utilities',
+                           'Real Estate', 'Comm.', 'Russell 2000', 'QQQ Trust']
+            sector_trans = pd.DataFrame(data=sector_name, index=sector_list)
+            sector_trans = sector_trans.T.set_index('SPY')
+            st.plotly_chart(create_table(sector_trans), use_container_width=True, config={'staticPlot': True})
 
         # Correlation table
         one, two, three = st.columns([1, 6, 1])
@@ -1013,19 +1070,24 @@ if screen == 'Reports':
             spy = run_query_cached(
                 PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
             spy['return%'] = spy['Close'].pct_change(1) * 100
-            spy = spy.tail(period)
-            spy['var'] = spy['return%'].var()
+
             for i in range(0, len(sector_list)):
                 sector = run_query_cached(
                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
-                sector['return%'] = sector['Close'].pct_change(1) * 100
-                sector = sector.tail(period)
-                matrix[f'{sector_list[i]}'] = sector['return%'].values
-                corr_matrix = matrix.corr()
 
-                sector['bm_return%'] = spy['return%'].to_list()
-                cov_df = sector[['return%', "bm_return%"]].cov()
-                bm_var = spy.iloc[-1]['var']
+                sector['return%'] = sector['Close'].pct_change(1) * 100
+                corr_table[f'{sector_list[i]}'] = sector['return%'].rolling(21).corr(spy['return%'])
+                corr_table['Date'] = spy['Date']
+
+                spy_short = spy.tail(period)
+                spy_short['var'] = spy_short['return%'].var()
+
+                sector_short = sector.tail(period)
+                matrix[f'{sector_list[i]}'] = sector_short['return%'].values
+                corr_matrix = matrix.corr()
+                sector_short['bm_return%'] = spy_short['return%'].to_list()
+                cov_df = sector_short[['return%', "bm_return%"]].cov()
+                bm_var = spy_short.iloc[-1]['var']
                 beta = cov_df.iloc[1, 0] / bm_var
                 beta_list.append(beta)
 
@@ -1033,9 +1095,28 @@ if screen == 'Reports':
             temp['Beta'] = beta_list
             temp = temp.T
             corr_matrix = corr_matrix.append(temp)
-            u = corr_matrix.index.get_level_values(0)
-            corr_matrix = corr_matrix.style.background_gradient(cmap='Oranges', axis=None, low=-0.5,
-                                                                subset=pd.IndexSlice[u[:-1], :])
-            corr_matrix = corr_matrix.background_gradient(
-                cmap='Greens', axis=None, subset=pd.IndexSlice[u[-1], :])
-            st.table(corr_matrix.format(precision=2))
+
+            matrix_table = create_table(corr_matrix, align=['left'] + ['right'], heatmap=True, exclude=1)
+            st.plotly_chart(matrix_table, use_container_width=True, config={'staticPlot': True})
+            #st.plotly_chart(create_table(corr_table), use_container_width=True, config={'staticPlot': True})
+
+            st.subheader('One-month Rolling Correlations')
+            corr_line = px.line(corr_table.tail(252-21), x='Date', y=sector_list, color_discrete_sequence= ['#696969']+ px.colors.qualitative.Plotly)
+            corr_line.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=500,
+                                    plot_bgcolor='white',
+                                    legend_title_text='Sectors',
+                                    xaxis={'title':'','tickangle':45, 'zeroline': True},
+                                    yaxis={'title':'Correlation','fixedrange': True, 'zeroline': True, 'zerolinecolor':'dimgrey'})
+            #corr_line.update_xaxes(ticks="outside", tickwidth=2, tickcolor='crimson', ticklen=10)
+            corr_line.update_xaxes(nticks=30)
+            corr_line.update_xaxes(showline=True, linewidth=1, linecolor='dimgrey')
+            corr_line.update_yaxes(showline=True, linewidth=1, linecolor='dimgrey')
+
+            st.plotly_chart(corr_line, use_container_width=True, config={'staticPlot': False})
+            #st.line_chart(corr_table.set_index('Date'))
+
+if screen == 'Scanner':
+    one, two , three = st.columns([1,3,1])
+    with two:
+        '---'
+        st.info('Coming soon')
