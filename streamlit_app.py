@@ -595,8 +595,8 @@ if screen == 'Watchlist':
 
 # ----------JOURNAL---------------
 if screen == 'Journal':
-    journal_full = run_query(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
-    journal_cmt = run_query(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID")
+    journal_full = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
+    journal_cmt = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID limit 200")
     journal_full['ID'] = journal_full['ID'].astype(str)
     journal_full = journal_full.set_index('ID')
     journal_full['PnL'] = round(journal_full['PnL'] / RISK, 2)
@@ -879,9 +879,9 @@ if screen == 'Journal':
                 st.error("Incorrect password")
 
 if screen == 'Reports':
-    mkt_report = run_query(REPORT_DB, "SELECT * FROM mkt_report")
-    stock_analysis = run_query(REPORT_DB, "SELECT * FROM stock_analysis")
-    mkt_report_updated = run_query(REPORT_DB, "SELECT * FROM updated")
+    mkt_report = run_query_cached(REPORT_DB, "SELECT * FROM mkt_report")
+    stock_analysis = run_query_cached(REPORT_DB, "SELECT * FROM stock_analysis")
+    mkt_report_updated = run_query_cached(REPORT_DB, "SELECT * FROM updated")
     report_date = mkt_report_updated.iat[0, 0]
 
     one, two, three = st.columns([1, 6, 1])
