@@ -1025,10 +1025,10 @@ if screen == 'Reports':
             st.plotly_chart(close_up_down_chart, use_container_width=True, config = {'staticPlot': True})
             st.plotly_chart(new_high_low_chart, use_container_width=True, config = {'staticPlot': True})
         with three:
-            st.write('Long sigma distribution')
+            st.write(f'Long sigma distribution (of {total_advance})')
             st.plotly_chart(ss_up, use_container_width=True)
         with four:
-            st.write('Short sigma distribution')
+            st.write(f'Short sigma distribution (of {total_decline})')
             st.plotly_chart(ss_down, use_container_width=True)
 
 
