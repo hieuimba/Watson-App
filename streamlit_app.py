@@ -578,8 +578,6 @@ if screen == 'Watchlist':
             selections = in_progress.index.values.tolist()
         if watchlist_type == "Setting Up":
             selections = setting_up.index.values.tolist()
-            st.write(selections)
-            st.write(setting_up)
         if watchlist_type == "Inbox":
             selections = inbox.index.values.tolist()
         if len(selections) > 0:
