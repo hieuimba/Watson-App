@@ -455,6 +455,7 @@ if screen == 'Watchlist':
         inbox = pullback[pullback['Entry'].isna()]
 
         watchlist_type = st.radio("Select watchlist:", ("Inbox", "Setting Up", "In Progress", "All"), index=1)
+        st.write(setting_up)
         if watchlist_type == "All" and len(all) > 0:
             all_table = create_table(all,
                                      col_width = [20, 18, 18, 18, 18, 25, 25],
@@ -465,6 +466,7 @@ if screen == 'Watchlist':
                                      col_width = [20, 18, 18, 18, 18, 25, 25],
                                      align=['left','left'] + ['right']*5)
             st.plotly_chart(in_progress_table, use_container_width=True, config={'staticPlot': True})
+            
         if watchlist_type == "Setting Up" and len(setting_up) > 0:
             setting_up = setting_up[setting_up['Entry'].notna()]
             setting_up_table = create_table(setting_up,
