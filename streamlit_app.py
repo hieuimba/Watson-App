@@ -359,6 +359,8 @@ if screen == 'PSC':
     with two:
         if 'SPY' in open_positions.index.values.tolist():
             new_list = open_positions.index.values.tolist().remove('SPY')
+            st.write(new_list)
+            st.write(type(new_list))
             new_list = new_list.insert(0, 'SPY')
             symbol = st.multiselect('Select symbols:', options=symbol_list,
                             default= new_list)
