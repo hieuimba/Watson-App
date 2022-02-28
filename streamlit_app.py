@@ -357,8 +357,12 @@ if screen == 'PSC':
         elif options == '1 Y':
             period = 252
     with two:
-        symbol = st.multiselect('Select symbols:', options=symbol_list,
-                                default=['SPY'] + open_positions.index.values.tolist().remove('SPY'))
+        if 'SPY' in open_positions.index.values.tolist():
+            symbol = st.multiselect('Select symbols:', options=symbol_list,
+                            default= open_positions.index.values.tolist())
+        else:
+            symbol = st.multiselect('Select symbols:', options=symbol_list,
+                                    default=['SPY'] + open_positions.index.values.tolist())
         #st.subheader('Portfolio Correlation')
         spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
         spy['return%'] = spy['Close'].pct_change(1) * 100
