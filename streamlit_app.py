@@ -358,8 +358,9 @@ if screen == 'PSC':
             period = 252
     with two:
         if 'SPY' in open_positions.index.values.tolist():
+            open_positions.index.values.tolist().remove('SPY')
             symbol = st.multiselect('Select symbols:', options=symbol_list,
-                            default= ['SPY'] + open_positions.index.values.tolist().remove('SPY'))
+                            default= ['SPY'] + open_positions.index.values.tolist())
         else:
             symbol = st.multiselect('Select symbols:', options=symbol_list,
                                     default=['SPY'] + open_positions.index.values.tolist())
