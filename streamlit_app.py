@@ -168,13 +168,25 @@ POSITIONS_HEADING = "<h1 style='text-align: center; color: black;'>Current Posit
 PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>"
 
 updated = run_query(POSITIONS_DB, "SELECT Updated FROM updated")
+stock_updated = run_query(PRICES_DB, "SELECT Updated FROM stock_price limit 1")
+etf_updated = run_query(PRICES_DB, "SELECT Updated FROM etf_price limit 1")
+stock_updated_time = pd.to_datetime(stock_updated.iat[0, 0]).date()
+etf_updated_time = pd.to_datetime(etf_updated.iat[0, 0]).date()
+if stock_updated_time == etf_updated_time:
+    data_updated = pd.to_datetime(stock_updated.iat[0, 0]).strftime('%H:%M:%S %b-%d')
+else:
+    data_updated = 'Error'
 
-one, two, three, four = st.columns([1, 0.25, 2.75, 1])
+one, two, three, four, five = st.columns([1, 0.25, 0.4, 0.5, 2.85])
 with two:
     st.image(page_icon)
 with three:
-    st.write("")
-    st.caption(f'Updated: {updated.iat[0, 0]}')
+    # st.write("")
+    st.caption(f'Positions Updated: {updated.iat[0, 0]}')
+with four:
+    # st.write("")
+    st.caption(f'Market Data Refreshed: {data_updated}')
+
 
 one, two, three = st.columns([1, 3, 1])
 with two:
@@ -1128,3 +1140,4 @@ if screen == 'Scanner':
     with two:
         '---'
         st.info('Coming soon')
+
