@@ -666,7 +666,7 @@ if screen == 'Journal':
                         alt.value('green'),
                         alt.value('red')
                     )
-                ).configure_view(strokeWidth=0).configure_axis(grid=False)
+                ).configure_view(strokeWidth=0).configure_axis(grid=True)
                 st.altair_chart(bar_chart, use_container_width=True)
 
                 journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
@@ -674,7 +674,7 @@ if screen == 'Journal':
                     x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='')),
                     y=alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
                     color=alt.value("#FFAA00")
-                ).configure_view(strokeWidth=0).configure_axis(grid=False)
+                ).configure_view(strokeWidth=0).configure_axis(grid=True)
                 st.altair_chart(line_chart, use_container_width=True)
                 st.subheader('Statistics')
 
