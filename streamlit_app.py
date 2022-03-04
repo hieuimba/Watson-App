@@ -35,6 +35,7 @@ JOURNAL_PASSWORD = st.secrets['journal_password']
 today = datetime.today() - timedelta(hours=0)
 today_string = today.strftime('%Y-%m-%d')
 
+
 # ----------LAYOUT SETUP----------
 HIDE_FOOTER = "<style>#MainMenu {visibility: hidden; } footer {visibility: hidden;}</style>"
 HIDE_SETTINGS = "<style>header {visibility: hidden;}</style>"
@@ -43,7 +44,6 @@ page_icon = Image.open(FAVICON_PATH)
 st.set_page_config(layout='wide', page_title='Watson 3', page_icon='🔧')  # page_icon
 st.markdown(HIDE_FOOTER, unsafe_allow_html=True)
 st.markdown(HIDE_SETTINGS, unsafe_allow_html=True)
-
 
 # ----------ALPHA VANTAGE---------
 def get_earnings(api_key, horizon, symbol=None):
@@ -614,7 +614,7 @@ if screen == 'Watchlist':
 # ----------JOURNAL---------------
 if screen == 'Journal':
     journal_full = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
-    journal_cmt = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_cmt order by ID limit 200")
+    journal_cmt = run_query_cached(JOURNAL_DB, f"SELECT * FROM journal_cmt order by ID limit {len(journal_full)}")
     journal_full['ID'] = journal_full['ID'].astype(str)
     journal_full = journal_full.set_index('ID')
     journal_full['PnL'] = round(journal_full['PnL'] / RISK, 2)
@@ -816,29 +816,28 @@ if screen == 'Journal':
                     pnl = journal_full.at[i, 'PnL']
 
                     record = journal_full.loc[journal_full.index == i].drop(columns=['Entry', 'Exit'])
-                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P&L"},
+                    record = record.rename({"EntryFilled": "Entry'", "ExitFilled": "Exit'", "PnL": "P/L"},
                                            axis='columns')
-
-                    if np.isnan(pnl):
-                        label = f"{i_int}. {symbol} {direction} - In Progress"
-                    elif pnl > 0:
-                        label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R"
-                    else:
-                        label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R"
-
                     record = record[
                         ['Date Open', 'Date Close', 'Symbol', 'L/S', 'Qty', "Entry'", 'Stop', 'Target',
-                         "Exit'", 'P&L', 'Signal']]
-                    #record = record.assign(hack='').set_index('hack')
+                         "Exit'", 'P/L', 'Signal']]
+
+                    comment = journal_cmt.at[i_int - 1, 'Comment']
+
+                    if np.isnan(pnl):
+                        label = f"{i_int}. {symbol} {direction} - In Progress - " + comment
+                    elif pnl > 0:
+                        label = f"{i_int}. {symbol} {direction} +{abs(pnl)} R - " + comment
+                    else:
+                        label = f"{i_int}. {symbol} {direction} -{abs(pnl)} R - " + comment
+
                     record_expander = st.expander(label=label)
                     with record_expander:
-                        record = record.rename(columns={"P&L": "P/L"})
                         record_table = create_table(record,
                                                     col_width=[15, 25, 25]+[20]*9,
                                                     align=['right'] + ['left', 'left'] + ['right'] * 6)
                         st.plotly_chart(record_table, use_container_width=True, config={'staticPlot': True})
 
-                        comment = journal_cmt.at[i_int - 1, 'Comment']
                         if comment == None:
                             st.write("")
                         else:
@@ -1140,4 +1139,6 @@ if screen == 'Scanner':
     with two:
         '---'
         st.info('Coming soon')
+
+
 
