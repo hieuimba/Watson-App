@@ -746,6 +746,7 @@ if screen == 'Journal':
 
     if select_view == 'Table':
         journal_full = journal_full.drop(columns=['Signal'])
+        journal_full['Risk'] = abs(journal_full['Qty'] * journal_full['Entry']-journal_full['Stop'])
         one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
@@ -789,7 +790,7 @@ if screen == 'Journal':
                 st.write(f'9 Month: {nine_month_pnl}')
             one, two, three = st.columns([1, 6, 1])
             with two:
-                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*9)
+                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*10)
                 st.plotly_chart(journal_full_table, use_container_width=True, config={'staticPlot': True})
         elif password == "":
             pass
