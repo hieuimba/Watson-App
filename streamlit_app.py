@@ -746,7 +746,7 @@ if screen == 'Journal':
 
     if select_view == 'Table':
         journal_full = journal_full.drop(columns=['Signal'])
-        journal_full['Risk'] = abs(journal_full['Qty'] * journal_full['Entry']-journal_full['Stop'])
+        journal_full['Risk'] = abs(journal_full['Qty'] * (journal_full['Entry']-journal_full['Stop']))
         one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
