@@ -790,7 +790,7 @@ if screen == 'Journal':
                 st.write(f'9 Month: {nine_month_pnl}')
             one, two, three = st.columns([1, 6, 1])
             with two:
-                journal_full_sorted = journal_full.sort_values(by=['Date Close'], ascending=False)
+                journal_full_sorted = journal_full.sort_values(by=['Date Close','PnL'], ascending=False)
                 journal_full_table = create_table(journal_full_sorted, align=['right'] + ['left']*4 + ['right']*10)
                 st.plotly_chart(journal_full_table, use_container_width=True, config={'staticPlot': True})
         elif password == "":
