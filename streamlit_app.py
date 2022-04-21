@@ -659,7 +659,7 @@ if screen == 'Journal':
             one, two, three = st.columns([1, 6, 1])
             with two:
                 bar_chart = alt.Chart(journal_full).mark_bar(size=5).encode(
-                    x=alt.X('Date Open', axis=alt.Axis(title='', grid = False)),
+                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='', grid = False)),
                     y=alt.Y('PnL', axis=alt.Axis(title='P/L')),
                     color=alt.condition(
                         alt.datum.PnL > 0,
@@ -671,7 +671,7 @@ if screen == 'Journal':
 
                 journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
                 line_chart = alt.Chart(journal_full).mark_line(size=3).encode(
-                    x=alt.X('Date Open', axis=alt.Axis(title='', grid = False)),
+                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='', grid = False)),
                     y=alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
                     color=alt.value("#FFAA00")
                 ).configure_view(strokeWidth=0)
