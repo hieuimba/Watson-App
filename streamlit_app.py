@@ -42,8 +42,8 @@ HIDE_SETTINGS = "<style>header {visibility: hidden;}</style>"
 page_icon = Image.open(FAVICON_PATH)
 
 st.set_page_config(layout='wide', page_title='Watson 3', page_icon='🔧')  # page_icon
-st.markdown(HIDE_FOOTER, unsafe_allow_html=True)
-st.markdown(HIDE_SETTINGS, unsafe_allow_html=True)
+# st.markdown(HIDE_FOOTER, unsafe_allow_html=True)
+# st.markdown(HIDE_SETTINGS, unsafe_allow_html=True)
 
 # ----------ALPHA VANTAGE---------
 def get_earnings(api_key, horizon, symbol=None):
@@ -166,6 +166,7 @@ pre_market = is_in_time_period(
 HORIZONTAL_RADIO = "<style>div.row-widget.stRadio > div{flex-direction:row;}</style>"
 POSITIONS_HEADING = "<h1 style='text-align: center; color: black;'>Current Positions</h1>"
 PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>"
+PNL_HEADING = "<h1 style='text-align: center; color: black;'>P&L: Last 100 trades</h1>"
 
 updated = run_query(POSITIONS_DB, "SELECT Updated FROM updated")
 stock_updated = run_query(PRICES_DB, "SELECT Updated FROM stock_price limit 1")
@@ -192,10 +193,10 @@ one, two, three = st.columns([1, 3, 1])
 with two:
     if pre_market == True:
         screen = st.radio('', options=[
-            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'Journal'])
+            'Pre-market', 'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'P&L','Journal'])
     else:
         screen = st.radio('', options=[
-            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'Journal'])
+            'Positions', 'PSC', 'Watchlist', 'Scanner', 'Reports', 'P&L', 'Journal'])
 st.markdown(HORIZONTAL_RADIO, unsafe_allow_html=True)
 OTHER_HEADING = f"<h1 style='text-align: center; color: black;'>{screen}</h1>"
 
@@ -203,6 +204,8 @@ if screen == 'Positions':
     st.markdown(POSITIONS_HEADING, unsafe_allow_html=True)
 elif screen == 'PSC':
     st.markdown(PSC_HEADING, unsafe_allow_html=True)
+elif screen == 'P&L':
+    st.markdown(PNL_HEADING, unsafe_allow_html=True)
 else:
     st.markdown(OTHER_HEADING, unsafe_allow_html=True)
 
@@ -611,6 +614,61 @@ if screen == 'Watchlist':
         else:
             st.write('Watchlist is empty')
 
+# ----------TRADES----------------
+if screen == 'P&L':
+    one, two, three = st.columns([1, 6, 1])
+    with two:
+        '---'
+        journal_full = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
+        journal_full['ID'] = journal_full['ID'].astype(str)
+        journal_full = journal_full.set_index('ID')
+        journal_full['PnL'] = round(journal_full['PnL'] / RISK, 2)
+        journal_full = journal_full[::-1].head(100)
+        journal_full = journal_full.drop(columns=['Signal'])
+        journal_full = journal_full.dropna()
+        journal_full = journal_full.reset_index().sort_values('Date Close', ascending=True)
+        journal_full['Date Open'] = pd.to_datetime(journal_full['Date Open']).dt.strftime('%b %d, %Y')
+
+        journal_full['Date Close'] = pd.to_datetime(journal_full['Date Close'])
+        journal_pnl = journal_full.groupby([journal_full['Date Close'].dt.date]).sum().reset_index()
+
+        journal_pnl['Rolling PnL'] = np.cumsum(journal_pnl['PnL'])
+        line_chart = px.line(journal_pnl, x='Date Close', y='Rolling PnL', height=300)
+        line_chart.update_layout({
+            'plot_bgcolor': 'white',
+            'paper_bgcolor': 'white',
+            'modebar_remove': ['zoom', 'select', 'zoomIn', 'zoomOut', 'lasso'],
+            'yaxis_title': None, 'xaxis_title': None,
+            'margin':{'l':0,'r':0,'t':0,'b':0},
+            'hovermode': 'x'
+        })
+        line_chart.update_yaxes(fixedrange=True, showline=True, linewidth=1, linecolor='black',
+                                showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                                zeroline=True, zerolinewidth=1, zerolinecolor='lightgrey')
+        line_chart.update_xaxes(showline=True, linewidth=1, linecolor='black')
+        line_chart.update_traces(line_color='#800040')
+        st.subheader('Rolling P&L')
+        st.plotly_chart(line_chart, use_container_width=True, config={'displaylogo': False})
+
+        colors = ['red' if x < 0 else 'green' for x in journal_full['PnL']]
+        bar_chart = px.bar(journal_full, x='Date Close', y='PnL', hover_name=journal_full.Symbol.to_list(), height=300, hover_data=['Date Open'])
+        bar_chart.update_layout({
+            'plot_bgcolor': 'white',
+            'paper_bgcolor': 'white',
+            'modebar_remove': ['zoom', 'select', 'zoomIn', 'zoomOut', 'lasso'],
+            'yaxis_title': None, 'xaxis_title': None,
+            'margin':{'l':0,'r':0,'t':0,'b':0},
+            'hovermode':'closest'
+        })
+        bar_chart.update_yaxes(fixedrange=True, showline=True, linewidth=1, linecolor='black',
+                               showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                               zeroline=True, zerolinewidth=1, zerolinecolor='black')
+        bar_chart.update_xaxes(showline=True, linewidth=1, linecolor='black')
+        bar_chart.update_traces(marker_color=colors)
+        st.subheader('P&L by Date')
+        st.plotly_chart(bar_chart, use_container_width=True, config={'displaylogo': False})
+
+
 # ----------JOURNAL---------------
 if screen == 'Journal':
     journal_full = run_query_cached(JOURNAL_DB, "SELECT * FROM journal_full order by ID")
@@ -626,16 +684,17 @@ if screen == 'Journal':
     with two:
         select_view = st.radio('Select view:', options=['Summary', 'Table', 'List', 'Gallery'], index=0)
     with three:
-        last_n_trade = st.radio('Last:', ('All', '50 trades', '25 trades', '10 trades'), index=1)
+        last_n_trade = st.radio('Last:', ('All', '100 trades', '50 trades', '20 trades'), index=1)
         if last_n_trade == 'All':
             n = len(journal_full)
+        if last_n_trade == '100 trades':
+            n = 100
         if last_n_trade == '50 trades':
             n = 50
-        if last_n_trade == '25 trades':
-            n = 25
-        if last_n_trade == '10 trades':
-            n = 10
+        if last_n_trade == '20 trades':
+            n = 20
         journal_full = journal_full[::-1].head(n)
+
 
     if select_view == 'Summary':
         one, two, three = st.columns([1, 6, 1])
@@ -648,7 +707,7 @@ if screen == 'Journal':
 
             journal_full = journal_full.drop(columns=['Signal'])
             journal_full = journal_full.dropna()
-            journal_full = journal_full.reset_index()
+            journal_full = journal_full.reset_index().sort_values('Date Close', ascending=True)
 
             one, two, three, four = st.columns([1, 2, 4, 1])
             with two:
@@ -658,24 +717,43 @@ if screen == 'Journal':
 
             one, two, three = st.columns([1, 6, 1])
             with two:
-                bar_chart = alt.Chart(journal_full).mark_bar(size=5).encode(
-                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='', grid = False)),
-                    y=alt.Y('PnL', axis=alt.Axis(title='P/L')),
-                    color=alt.condition(
-                        alt.datum.PnL > 0,
-                        alt.value('green'),
-                        alt.value('red')
-                    )
-                ).configure_view(strokeWidth=0)
-                st.altair_chart(bar_chart, use_container_width=True)
+                # st.table(journal_full)
 
-                journal_full['Rolling PnL'] = np.cumsum(journal_full[::-1]['PnL'])
-                line_chart = alt.Chart(journal_full).mark_line(size=3).encode(
-                    x=alt.X('ID', sort=journal_full[::-1]['ID'].to_list(), axis=alt.Axis(title='', grid = False)),
-                    y=alt.Y('Rolling PnL', axis=alt.Axis(title='Rolling P&L')),
-                    color=alt.value("#FFAA00")
-                ).configure_view(strokeWidth=0)
-                st.altair_chart(line_chart, use_container_width=True)
+                journal_full['Date Close'] = pd.to_datetime(journal_full['Date Close'])
+                journal_pnl = journal_full.groupby([journal_full['Date Close'].dt.date]).sum().reset_index()
+
+                journal_pnl['Rolling PnL'] = np.cumsum(journal_pnl['PnL'])
+                line_chart = px.line(journal_pnl, x='Date Close', y='Rolling PnL',height=300)
+                line_chart.update_layout({
+                    'plot_bgcolor': 'white',
+                    'paper_bgcolor': 'white',
+                    'modebar_remove': ['zoom', 'select', 'zoomIn', 'zoomOut', 'lasso'],
+                    'yaxis_title': None, 'xaxis_title': None,
+                    'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0}
+                })
+                line_chart.update_yaxes(fixedrange = True,showline=True, linewidth=1, linecolor='black',
+                                 showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                                 zeroline=True, zerolinewidth=1, zerolinecolor='lightgrey')
+                line_chart.update_xaxes(showline=True, linewidth=1, linecolor='black')
+                line_chart.update_traces(line_color='#800040')
+                st.plotly_chart(line_chart, use_container_width=True, config = {'displaylogo': False})
+
+                colors = ['red' if x < 0 else 'green' for x in journal_full['PnL']]
+                bar_chart = px.bar(journal_full,x ='Date Close',y='PnL',hover_name=journal_full.Symbol.to_list(), height = 300)
+                bar_chart.update_layout({
+                    'plot_bgcolor': 'white',
+                    'paper_bgcolor': 'white',
+                    'modebar_remove': ['zoom', 'select', 'zoomIn', 'zoomOut', 'lasso'],
+                    'yaxis_title': None, 'xaxis_title': None,
+                    'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0}
+                })
+                bar_chart.update_yaxes(fixedrange = True,showline=True, linewidth=1, linecolor='black',
+                                 showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                                 zeroline=True, zerolinewidth=1, zerolinecolor='black')
+                bar_chart.update_xaxes(showline=True, linewidth=1, linecolor='black')
+                bar_chart.update_traces(marker_color = colors)
+                st.plotly_chart(bar_chart, use_container_width=True, config = {'displaylogo': False})
+
                 st.subheader('Statistics')
 
             one, two, three, four, five = st.columns([1, 2, 2, 2, 1])
@@ -746,7 +824,6 @@ if screen == 'Journal':
 
     if select_view == 'Table':
         journal_full = journal_full.drop(columns=['Signal'])
-        journal_full['Risk'] = abs(journal_full['Qty'] * (journal_full['Entry']-journal_full['Stop']))
         one, two, three = st.columns([1, 6, 1])
         with two:
             text_input_container = st.empty()
@@ -790,8 +867,7 @@ if screen == 'Journal':
                 st.write(f'9 Month: {nine_month_pnl}')
             one, two, three = st.columns([1, 6, 1])
             with two:
-                journal_full_sorted = journal_full.sort_values(by=['Date Close','PnL'], ascending=False)
-                journal_full_table = create_table(journal_full_sorted, align=['right'] + ['left']*4 + ['right']*10)
+                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*9)
                 st.plotly_chart(journal_full_table, use_container_width=True, config={'staticPlot': True})
         elif password == "":
             pass
@@ -1141,6 +1217,4 @@ if screen == 'Scanner':
     with two:
         '---'
         st.info('Coming soon')
-
-
 
