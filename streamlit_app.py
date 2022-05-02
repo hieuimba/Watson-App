@@ -166,7 +166,7 @@ pre_market = is_in_time_period(
 HORIZONTAL_RADIO = "<style>div.row-widget.stRadio > div{flex-direction:row;}</style>"
 POSITIONS_HEADING = "<h1 style='text-align: center; color: black;'>Current Positions</h1>"
 PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calculator</h1>"
-PNL_HEADING = "<h1 style='text-align: center; color: black;'>P&L: Last 100 trades</h1>"
+PNL_HEADING = "<h1 style='text-align: center; color: black;'>Last 100 trades</h1>"
 
 updated = run_query(POSITIONS_DB, "SELECT Updated FROM updated")
 stock_updated = run_query(PRICES_DB, "SELECT Updated FROM stock_price limit 1")
