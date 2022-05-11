@@ -1175,7 +1175,7 @@ if screen == 'Reports':
         one, two, three = st.columns([1, 6, 1])
         with two:
             spy = get_eod_data('SPY', '2021-01-01')
-            spy['return%'] = spy['Close'].pct_change(1) * 100
+            spy['return%'] = spy['close'].pct_change(1) * 100
 
             for i in range(0, len(sector_list)):
                 sector = get_eod_data(sector_list[i], '2021-01-01')
