@@ -665,7 +665,7 @@ if screen == 'P&L':
                                zeroline=True, zerolinewidth=1, zerolinecolor='black')
         bar_chart.update_xaxes(showline=True, linewidth=1, linecolor='black')
         bar_chart.update_traces(marker_color=colors)
-        st.subheader('P&L by Date')
+        st.subheader('P&L by Trade')
         st.plotly_chart(bar_chart, use_container_width=True, config={'displaylogo': False})
 
 
