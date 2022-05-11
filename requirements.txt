@@ -5,3 +5,4 @@ ta
 matplotlib
 plotly
 streamlit
+alpaca-trade-api
