@@ -184,14 +184,6 @@ PSC_HEADING = "<h1 style='text-align: center; color: black;'>Position Size Calcu
 PNL_HEADING = "<h1 style='text-align: center; color: black;'>Last 100 trades</h1>"
 
 updated = run_query(POSITIONS_DB, "SELECT Updated FROM updated")
-stock_updated = run_query(PRICES_DB, "SELECT Updated FROM stock_price limit 1")
-etf_updated = run_query(PRICES_DB, "SELECT Updated FROM etf_price limit 1")
-stock_updated_time = pd.to_datetime(stock_updated.iat[0, 0]).date()
-etf_updated_time = pd.to_datetime(etf_updated.iat[0, 0]).date()
-if stock_updated_time == etf_updated_time:
-    data_updated = pd.to_datetime(stock_updated.iat[0, 0]).strftime('%H:%M:%S %b-%d')
-else:
-    data_updated = 'Error'
 
 one, two, three, four, five = st.columns([1, 0.25, 0.4, 0.5, 2.85])
 with two:
@@ -199,9 +191,6 @@ with two:
 with three:
     # st.write("")
     st.caption(f'Positions Updated: {updated.iat[0, 0]}')
-with four:
-    # st.write("")
-    st.caption(f'Market Data Refreshed: {data_updated}')
 
 
 one, two, three = st.columns([1, 3, 1])
@@ -396,7 +385,7 @@ if screen == 'PSC':
             symbol = st.multiselect('Select symbols:', options=symbol_list + ['TAN'],
                                     default=['SPY'] + open_positions.index.values.tolist())
         #st.subheader('Portfolio Correlation')
-        #spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+
         spy = get_eod_data('SPY', '2021-01-01')
         spy['return%'] = spy['close'].pct_change(1) * 100
         spy = spy.tail(period)
@@ -1179,9 +1168,6 @@ if screen == 'Reports':
 
             for i in range(0, len(sector_list)):
                 sector = get_eod_data(sector_list[i], '2021-01-01')
-#                 sector = run_query_cached(
-#                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
-
                 sector['return%'] = sector['close'].pct_change(1) * 100
                 corr_table[f'{sector_list[i]}'] = sector['return%'].rolling(21).corr(spy['return%'])
                 corr_table['Date'] = spy.index
