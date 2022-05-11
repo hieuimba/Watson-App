@@ -418,12 +418,12 @@ if screen == 'PSC':
                 bars = get_eod_data(symbol[i], '2021-01-01')
                 bars = bars.fillna('N/A')
 
-            bars['return%'] = bars['Close'].pct_change(1) * 100
+            bars['return%'] = bars['close'].pct_change(1) * 100
             if i == len(symbol) - 1:
                 bars['std dev'] = bars['return%'].rolling(21).std()
-                bars['ATR'] = volatility.AverageTrueRange(bars['High'], bars['Low'], bars['Close'],
+                bars['ATR'] = volatility.AverageTrueRange(bars['high'], bars['low'], bars['close'],
                                                           window=21).average_true_range()
-                bars['avg vol'] = bars['Volume'].rolling(21).mean()
+                bars['avg vol'] = bars['volume'].rolling(21).mean()
             bars = bars.tail(period)
             matrix[f'{symbol[i]}'] = bars['return%'].values
             corr_matrix = matrix.corr()
@@ -446,34 +446,34 @@ if screen == 'PSC':
         matrix_table = create_table(corr_matrix, align=['left'] + ['right'], heatmap = True)
         st.plotly_chart(matrix_table, use_container_width=True, config={'staticPlot': True})
 
-        st.subheader(f"Ticker Info: {bars.iloc[-1]['Symbol']}")
-        st.write(f"Name: {bars.iloc[-1]['Name']}, Sector: {bars.iloc[-1]['Sector']}")
-        st.write(f"Last: {bars.iloc[-1]['Close']}, Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
+#         st.subheader(f"Ticker Info: {bars.iloc[-1]['Symbol']}")
+#         st.write(f"Name: {bars.iloc[-1]['Name']}, Sector: {bars.iloc[-1]['Sector']}")
+#         st.write(f"Last: {bars.iloc[-1]['Close']}, Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
         atr = bars.iloc[-1]['ATR']
         st.write(
             f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.write(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-        try:
-            if bars.iloc[-1]['Symbol'] not in etf_list:
-                earnings = get_earnings(
-                    API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
-                days_to_earnings = np.busday_count(
-                    today_string, earnings) + 1
-            else:
-                earnings = 'N/A'
-                days_to_earnings = 'N/A'
-        except:
-            earnings = 'Error'
-            days_to_earnings = 'Error'
+#         try:
+#             if bars.iloc[-1]['Symbol'] not in etf_list:
+#                 earnings = get_earnings(
+#                     API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
+#                 days_to_earnings = np.busday_count(
+#                     today_string, earnings) + 1
+#             else:
+#                 earnings = 'N/A'
+#                 days_to_earnings = 'N/A'
+#         except:
+#             earnings = 'Error'
+#             days_to_earnings = 'Error'
 
-        st.write(
-            f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
-        add_to_watchlist = st.button('Add to Watchlist')
-        if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
-            run_command(POSITIONS_DB, add_cmd)
-            st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
+#         st.write(
+#             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
+#         add_to_watchlist = st.button('Add to Watchlist')
+#         if add_to_watchlist:
+#             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
+#             run_command(POSITIONS_DB, add_cmd)
+#             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
