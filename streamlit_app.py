@@ -394,10 +394,10 @@ if screen == 'PSC':
         if 'SPY' in open_positions.index.values.tolist():
             new_list = open_positions.index.values.tolist()
             new_list.remove('SPY')
-            symbol = st.multiselect('Select symbols:', options=symbol_list,
+            symbol = st.multiselect('Select symbols:', options=symbol_list+ ['TAN'],
                             default= ['SPY'] + new_list)
         else:
-            symbol = st.multiselect('Select symbols:', options=symbol_list,
+            symbol = st.multiselect('Select symbols:', options=symbol_list + ['TAN'],
                                     default=['SPY'] + open_positions.index.values.tolist())
         #st.subheader('Portfolio Correlation')
         #spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
