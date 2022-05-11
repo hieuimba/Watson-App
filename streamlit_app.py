@@ -1184,7 +1184,7 @@ if screen == 'Reports':
 
                 sector['return%'] = sector['close'].pct_change(1) * 100
                 corr_table[f'{sector_list[i]}'] = sector['return%'].rolling(21).corr(spy['return%'])
-                corr_table['Date'] = spy['Date']
+                corr_table['Date'] = spy.index
 
                 spy_short = spy.tail(period)
                 spy_short['var'] = spy_short['return%'].var()
