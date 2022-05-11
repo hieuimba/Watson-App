@@ -1174,15 +1174,15 @@ if screen == 'Reports':
         # Correlation table
         one, two, three = st.columns([1, 6, 1])
         with two:
-            spy = run_query_cached(
-                PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+            spy = get_eod_data('SPY', '2021-01-01')
             spy['return%'] = spy['Close'].pct_change(1) * 100
 
             for i in range(0, len(sector_list)):
-                sector = run_query_cached(
-                    PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
+                sector = get_eod_data(sector_list[i], '2021-01-01')
+#                 sector = run_query_cached(
+#                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{sector_list[i]}'")
 
-                sector['return%'] = sector['Close'].pct_change(1) * 100
+                sector['return%'] = sector['close'].pct_change(1) * 100
                 corr_table[f'{sector_list[i]}'] = sector['return%'].rolling(21).corr(spy['return%'])
                 corr_table['Date'] = spy['Date']
 
