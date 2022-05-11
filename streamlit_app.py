@@ -64,6 +64,16 @@ def get_earnings(api_key, horizon, symbol=None):
 # ----------DATABASE SETUP--------
 apca_api = REST(APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL)
 
+def get_eod_data(symbol, start_date, end_date=None, warmup = 0):
+    warmup_time = timedelta(warmup)
+    start_date = pd.to_datetime(start_date).date()
+    bars = apca_api.get_bars(symbol, TimeFrame.Day, start=start_date - warmup_time, end=end_date, adjustment='all').df
+    bars.index = bars.index.tz_convert('America/New_York').date
+    return bars
+
+spy = get_eod_data('SPY', '2021-01-01')
+st.write(spy)
+
 
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
 def connect_db(database):
