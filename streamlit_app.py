@@ -62,7 +62,7 @@ def get_earnings(api_key, horizon, symbol=None):
 
 
 # ----------DATABASE SETUP--------
-apca_api = alpaca.REST(APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL)
+apca_api = REST(APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL)
 
 
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
