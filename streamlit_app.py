@@ -20,6 +20,8 @@ from io import BytesIO
 import requests
 import datetime as dt
 
+from alpaca_trade_api.rest import REST, TimeFrame
+
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 # ----------SECRETS---------------
 RISK = st.secrets['risk']
@@ -31,6 +33,9 @@ DB_USER = st.secrets['db_user']
 DB_PASSWORD = st.secrets['db_password']
 TRADINGVIEW = 'html/tradingview.html'
 JOURNAL_PASSWORD = st.secrets['journal_password']
+APCA_API_KEY_ID = st.secrets['APCA_API_KEY_ID']
+APCA_API_SECRET_KEY = st.secrets['APCA_API_SECRET_KEY']
+APCA_API_BASE_URL = st.secrets['APCA_API_BASE_URL']
 
 today = datetime.today() - timedelta(hours=0)
 today_string = today.strftime('%Y-%m-%d')
@@ -57,6 +62,9 @@ def get_earnings(api_key, horizon, symbol=None):
 
 
 # ----------DATABASE SETUP--------
+apca_api = alpaca.REST(APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL)
+
+
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
 def connect_db(database):
     return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle=7200)
