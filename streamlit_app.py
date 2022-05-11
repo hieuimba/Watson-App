@@ -72,10 +72,6 @@ def get_eod_data(symbol, start_date, end_date=None, warmup = 0):
     bars.index = bars.index.tz_convert('America/New_York').date
     return bars
 
-spy = get_eod_data('SPY', '2021-01-01')
-st.write(spy)
-
-
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
 def connect_db(database):
     return create_engine(f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{database}", pool_recycle=7200)
@@ -407,16 +403,8 @@ if screen == 'PSC':
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
-            if symbol[i] in etf_list:
-#                  bars = run_query_cached(
-#                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
-                bars = get_eod_data(symbol[i], '2021-01-01')
-                bars = bars.fillna('N/A')
-            else:
-#                 bars = run_query_cached(
-#                     PRICES_DB, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
-                bars = get_eod_data(symbol[i], '2021-01-01')
-                bars = bars.fillna('N/A')
+            bars = get_eod_data(symbol[i], '2021-01-01')
+            bars = bars.fillna('N/A')
 
             bars['return%'] = bars['close'].pct_change(1) * 100
             if i == len(symbol) - 1:
