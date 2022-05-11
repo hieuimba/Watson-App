@@ -64,6 +64,7 @@ def get_earnings(api_key, horizon, symbol=None):
 # ----------DATABASE SETUP--------
 apca_api = REST(APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL)
 
+@st.cache(allow_output_mutation=True, hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=3600)
 def get_eod_data(symbol, start_date, end_date=None, warmup = 0):
     warmup_time = timedelta(warmup)
     start_date = pd.to_datetime(start_date).date()
@@ -399,8 +400,9 @@ if screen == 'PSC':
             symbol = st.multiselect('Select symbols:', options=symbol_list,
                                     default=['SPY'] + open_positions.index.values.tolist())
         #st.subheader('Portfolio Correlation')
-        spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
-        spy['return%'] = spy['Close'].pct_change(1) * 100
+        #spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
+        spy = get_eod_data('SPY', '2021-01-01)
+        spy['return%'] = spy['close'].pct_change(1) * 100
         spy = spy.tail(period)
         spy['var'] = spy['return%'].var()
 
