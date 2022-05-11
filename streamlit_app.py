@@ -401,19 +401,21 @@ if screen == 'PSC':
                                     default=['SPY'] + open_positions.index.values.tolist())
         #st.subheader('Portfolio Correlation')
         #spy = run_query_cached(PRICES_DB, "SELECT * FROM etf_price WHERE symbol = 'SPY'")
-        spy = get_eod_data('SPY', '2021-01-01)
+        spy = get_eod_data('SPY', '2021-01-01')
         spy['return%'] = spy['close'].pct_change(1) * 100
         spy = spy.tail(period)
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
             if symbol[i] in etf_list:
-                bars = run_query_cached(
-                    PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
+#                  bars = run_query_cached(
+#                     PRICES_DB, f"SELECT * FROM etf_price WHERE symbol = '{symbol[i]}'")
+                bars = get_eod_data(symbol[i], '2021-01-01')
                 bars = bars.fillna('N/A')
             else:
-                bars = run_query_cached(
-                    PRICES_DB, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
+#                 bars = run_query_cached(
+#                     PRICES_DB, f"SELECT * FROM stock_price WHERE symbol = '{symbol[i]}'")
+                bars = get_eod_data(symbol[i], '2021-01-01')
                 bars = bars.fillna('N/A')
 
             bars['return%'] = bars['Close'].pct_change(1) * 100
