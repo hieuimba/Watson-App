@@ -431,7 +431,13 @@ if screen == 'PSC':
 
         st.subheader(f"Ticker Info: {last_symbol}")
         last_symbol_yf = yf.Ticker(last_symbol)
-        st.write(f"Name: {last_symbol_yf.info['shortName']}, Sector: {last_symbol_yf.info['sector']}")
+        last_symbol_name = last_symbol_yf.info['shortName']
+        try:
+            last_symbol_sector = last_symbol_yf.info['sector']
+        except:
+            last_symbol_sector = 'N/A'
+        
+        st.write(f"Name: {last_symbol_name}, Sector: {last_symbol_sector}")
         st.write(f"Last: {bars.iloc[-1]['close']}, Relative Volume: {round(bars.iloc[-1]['volume'] / bars.iloc[-1]['avg vol'], 2)}")
         atr = bars.iloc[-1]['ATR']
         st.write(
@@ -451,9 +457,9 @@ if screen == 'PSC':
             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{last_symbol_yf.info['shortName']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{last_symbol_name}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
             run_command(POSITIONS_DB, add_cmd)
-            st.success(f"Added '{last_symbol_yf.info['shortName']}' to watchlist")
+            st.success(f"Added '{last_symbol_name}' to watchlist")
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
