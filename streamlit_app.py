@@ -72,7 +72,7 @@ def get_eod_data(symbol, start_date, end_date=None, warmup = 0):
     bars.index = bars.index.tz_convert('America/New_York').date
     return bars
 
-def get_symbol_list()::
+def get_symbol_list():
     symbol_list = apca.list_assets(status=None, asset_class=None)
     return symbol_list
 
