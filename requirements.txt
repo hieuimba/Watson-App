@@ -6,3 +6,4 @@ matplotlib
 plotly
 streamlit
 alpaca-trade-api
+yfinance
