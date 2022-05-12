@@ -21,6 +21,7 @@ import requests
 import datetime as dt
 
 from alpaca_trade_api.rest import REST, TimeFrame
+import yfinance as yf
 
 ##-------------------------------------------------SETTINGS-----------------------------------------------------------##
 # ----------SECRETS---------------
@@ -36,6 +37,7 @@ JOURNAL_PASSWORD = st.secrets['journal_password']
 APCA_API_KEY_ID = st.secrets['APCA_API_KEY_ID']
 APCA_API_SECRET_KEY = st.secrets['APCA_API_SECRET_KEY']
 APCA_API_BASE_URL = st.secrets['APCA_API_BASE_URL']
+
 
 today = datetime.today() - timedelta(hours=0)
 today_string = today.strftime('%Y-%m-%d')
@@ -72,10 +74,11 @@ def get_eod_data(symbol, start_date, end_date=None, warmup = 0):
     bars.index = bars.index.tz_convert('America/New_York').date
     return bars
 
+@st.cache(allow_output_mutation=True, ttl=86400)
 def get_symbol_list():
-    symbol_list = apca.list_assets(status=None, asset_class=None)
-    return symbol_list
-
+    symbol_list = apca_api.list_assets(status='active', asset_class='us_equity')
+    symbol_list = [i.symbol for i in symbol_list]
+    return sorted(symbol_list)
 
 @st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id}, ttl=7200)
 def connect_db(database):
@@ -332,10 +335,7 @@ if screen == 'PSC':
     open_positions = run_query(
         POSITIONS_DB, "SELECT * FROM open_positions", 'Symbol')
     '---'
-    symbol_list = run_query_cached(PRICES_DB, "SELECT * FROM symbol_list")
-    etf_list = symbol_list[symbol_list['Sec_Type'] == 'ETF']
-    symbol_list = sorted(symbol_list['Symbol'].to_list())
-    etf_list = etf_list['Symbol'].to_list()
+    symbol_list = get_symbol_list()
 
     beta_list = []
     matrix = pd.DataFrame()
@@ -384,12 +384,11 @@ if screen == 'PSC':
         if 'SPY' in open_positions.index.values.tolist():
             new_list = open_positions.index.values.tolist()
             new_list.remove('SPY')
-            symbol = st.multiselect('Select symbols:', options=symbol_list+ ['TAN'],
+            symbol = st.multiselect('Select symbols:', options=symbol_list,
                             default= ['SPY'] + new_list)
         else:
-            symbol = st.multiselect('Select symbols:', options=symbol_list + ['TAN'],
+            symbol = st.multiselect('Select symbols:', options=symbol_list,
                                     default=['SPY'] + open_positions.index.values.tolist())
-        #st.subheader('Portfolio Correlation')
 
         spy = get_eod_data('SPY', '2021-01-01')
         spy['return%'] = spy['close'].pct_change(1) * 100
@@ -415,6 +414,8 @@ if screen == 'PSC':
             bm_var = spy.iloc[-1]['var']
             beta = cov_df.iloc[1, 0] / bm_var
             beta_list.append(beta)
+            
+            last_symbol = symbol[i]
 
         temp = pd.DataFrame(index=symbol)
         temp['Beta-M'] = beta_list
@@ -428,34 +429,31 @@ if screen == 'PSC':
         matrix_table = create_table(corr_matrix, align=['left'] + ['right'], heatmap = True)
         st.plotly_chart(matrix_table, use_container_width=True, config={'staticPlot': True})
 
-#         st.subheader(f"Ticker Info: {bars.iloc[-1]['Symbol']}")
-#         st.write(f"Name: {bars.iloc[-1]['Name']}, Sector: {bars.iloc[-1]['Sector']}")
-#         st.write(f"Last: {bars.iloc[-1]['Close']}, Relative Volume: {round(bars.iloc[-1]['Volume'] / bars.iloc[-1]['avg vol'], 2)}")
+        st.subheader(f"Ticker Info: {last_symbol}")
+        last_symbol_yf = yf.Ticker(last_symbol)
+        st.write(f"Name: {last_symbol_yf.info['shortName']}, Sector: {last_symbol_yf.info['sector']}")
+        st.write(f"Last: {bars.iloc[-1]['close']}, Relative Volume: {round(bars.iloc[-1]['volume'] / bars.iloc[-1]['avg vol'], 2)}")
         atr = bars.iloc[-1]['ATR']
         st.write(
             f"Distance: {abs(distance)},    ATR: {round(atr, 2)},    Stop/ATR: {round(distance / atr, 2)}")
         st.write(
             f"Distance %: {distance_percent} %,   1 Sigma: {round(bars.iloc[-1]['std dev'], 2)} %,    Stop/Sigma: {round(distance_percent / bars.iloc[-1]['std dev'], 2)}")
-#         try:
-#             if bars.iloc[-1]['Symbol'] not in etf_list:
-#                 earnings = get_earnings(
-#                     API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
-#                 days_to_earnings = np.busday_count(
-#                     today_string, earnings) + 1
-#             else:
-#                 earnings = 'N/A'
-#                 days_to_earnings = 'N/A'
-#         except:
-#             earnings = 'Error'
-#             days_to_earnings = 'Error'
+        try:
+            earnings = get_earnings(
+                API_KEY, "6month", bars.iloc[-1]['Symbol']).at[0, 'reportDate']
+            days_to_earnings = np.busday_count(
+                today_string, earnings) + 1
+        except:
+            earnings = 'N/A'
+            days_to_earnings = 'N/A'
 
-#         st.write(
-#             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
-#         add_to_watchlist = st.button('Add to Watchlist')
-#         if add_to_watchlist:
-#             add_cmd = f"INSERT INTO watchlist VALUES ('{bars.iloc[-1]['Symbol']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
-#             run_command(POSITIONS_DB, add_cmd)
-#             st.success(f"Added '{bars.iloc[-1]['Symbol']}' to watchlist")
+        st.write(
+            f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
+        add_to_watchlist = st.button('Add to Watchlist')
+        if add_to_watchlist:
+            add_cmd = f"INSERT INTO watchlist VALUES ('{last_symbol_yf.info['shortName']}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
+            run_command(POSITIONS_DB, add_cmd)
+            st.success(f"Added '{last_symbol_yf.info['shortName']}' to watchlist")
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
@@ -1218,4 +1216,3 @@ if screen == 'Scanner':
     with two:
         '---'
         st.info('Coming soon')
-
