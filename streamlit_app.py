@@ -390,13 +390,13 @@ if screen == 'PSC':
             symbol = st.multiselect('Select symbols:', options=symbol_list,
                                     default=['SPY'] + open_positions.index.values.tolist())
 
-        spy = get_eod_data('SPY', '2021-01-01')
+        spy = get_eod_data('SPY')
         spy['return%'] = spy['close'].pct_change(1) * 100
         spy = spy.tail(period)
         spy['var'] = spy['return%'].var()
 
         for i in range(0, len(symbol)):
-            bars = get_eod_data(symbol[i], '2021-01-01')
+            bars = get_eod_data(symbol[i])
             bars = bars.fillna('N/A')
 
             bars['return%'] = bars['close'].pct_change(1) * 100
@@ -1172,11 +1172,11 @@ if screen == 'Reports':
         # Correlation table
         one, two, three = st.columns([1, 6, 1])
         with two:
-            spy = get_eod_data('SPY', '2021-01-01')
+            spy = get_eod_data('SPY')
             spy['return%'] = spy['close'].pct_change(1) * 100
 
             for i in range(0, len(sector_list)):
-                sector = get_eod_data(sector_list[i], '2021-01-01')
+                sector = get_eod_data(sector_list[i])
                 sector['return%'] = sector['close'].pct_change(1) * 100
                 corr_table[f'{sector_list[i]}'] = sector['return%'].rolling(21).corr(spy['return%'])
                 corr_table['Date'] = spy.index
