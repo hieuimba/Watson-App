@@ -97,7 +97,6 @@ def run_command(connection, query):
     connection.execute(query)
 
 POSITIONS_DB = connect_db('positions')
-PRICES_DB = connect_db('prices')
 JOURNAL_DB = connect_db('journal')
 REPORT_DB = connect_db('report')
 
