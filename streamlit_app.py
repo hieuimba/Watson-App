@@ -847,6 +847,7 @@ if screen == 'Journal':
             total_pnl = format(total_pnl, '.2f') + ' R'
             
             journal_full['Dollar Risk'] = abs(journal_full['Entry'] - journal_full['Stop'])*journal_full['Qty']
+            journal_full['Dollar Reward'] = abs(journal_full['Entry'] - journal_full['Target'])*journal_full['Qty']
 
             def get_pnl_between_two_dates(start_date, end_date):
                 after_start_date = journal_full['Date Close'] >= start_date
