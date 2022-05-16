@@ -845,6 +845,8 @@ if screen == 'Journal':
 
             total_pnl = journal_full['PnL'].sum()
             total_pnl = format(total_pnl, '.2f') + ' R'
+            
+            journal_full['Dollar Risk'] = abs(journal_full['Entry'] - journal_full['Stop'])*journal_full['Qty']
 
             def get_pnl_between_two_dates(start_date, end_date):
                 after_start_date = journal_full['Date Close'] >= start_date
@@ -878,7 +880,7 @@ if screen == 'Journal':
                 st.write(f'9 Month: {nine_month_pnl}')
             one, two, three = st.columns([1, 6, 1])
             with two:
-                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*9)
+                journal_full_table = create_table(journal_full, align=['right'] + ['left']*4 + ['right']*10)
                 st.plotly_chart(journal_full_table, use_container_width=True, config={'staticPlot': True})
         elif password == "":
             pass
