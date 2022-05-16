@@ -429,10 +429,14 @@ if screen == 'PSC':
         st.plotly_chart(matrix_table, use_container_width=True, config={'staticPlot': True})
 
         st.subheader(f"Ticker Info: {last_symbol}")
-        last_symbol_yf = yf.Ticker(last_symbol)
-        last_symbol_name = last_symbol_yf.info['shortName']
+        
+        @st.cache(allow_output_mutation=True, ttl=3600)
+        def get_yf_data(symbol):
+            return yf.Ticker(symbol).info
+            
+        last_symbol_name = get_yf_data(last_symbol)['shortName']
         try:
-            last_symbol_sector = last_symbol_yf.info['sector']
+            last_symbol_sector = get_yf_data(last_symbol)['sector']
         except:
             last_symbol_sector = 'N/A'
         
@@ -456,9 +460,9 @@ if screen == 'PSC':
             f"Earnings date: {earnings},   Trading days till earnings: {days_to_earnings}")
         add_to_watchlist = st.button('Add to Watchlist')
         if add_to_watchlist:
-            add_cmd = f"INSERT INTO watchlist VALUES ('{last_symbol_name}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
+            add_cmd = f"INSERT INTO watchlist VALUES ('{last_symbol}', '{direction.lower()}', {entry}, {stop}, '{target}', 'pullback', '{today_string}', '{earnings}', '{size}')"
             run_command(POSITIONS_DB, add_cmd)
-            st.success(f"Added '{last_symbol_name}' to watchlist")
+            st.success(f"Added '{last_symbol}' to watchlist")
 
 # ----------WATCHLIST SCREEN------
 if screen == 'Watchlist':
